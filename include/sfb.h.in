@@ -1,0 +1,5 @@
+// Define macros for version numbers
+#define SFB_VERSION_MAJOR @SFB_VERSION_MAJOR@
+#define SFB_VERSION_MINOR @SFB_VERSION_MINOR@
+#define SFB_VERSION_PATCH @SFB_VERSION_PATCH@
+#define SFB_VERSION @SFB_VERSION@
