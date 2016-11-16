@@ -6,7 +6,8 @@ over serial communication while also seeing the filesystem of your partner.
 * Binaries not yet available
 
 ## Installation
-```$ git clone https://github.com/IceT-Clan/sfb.git
+```
+$ git clone https://github.com/IceT-Clan/sfb.git
 ```
 
 Full instructions coming soon.
