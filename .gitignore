@@ -40,3 +40,6 @@ CTestTestfile.cmake
 
 # Build files
 build/
+
+# Swap files
+*.swp
