@@ -15,7 +15,7 @@ configure_file (
 
 include_directories(include)
 
-set(SOURCES src/sfb.cpp include/sfb.h)
+set(SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h)
   
 # Add the executable
 add_executable(sfb ${SOURCES})

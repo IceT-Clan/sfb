@@ -1,9 +1,22 @@
 #include <iostream>
+#include <string>
 #include "sfb.h"
+#include "command.h"
 
 using namespace std;
 
 int main(int argc, char* argv[]) {
-	printf("version %s\n", SFB_VERSION);
+	Command cmd;
+
+	// Print version
+	cout << "sfb version " << SFB_VERSION << endl;
+
+	// Read command
+	if (cmd.read(argc, argv)) {
+		cout << "Command valid" << endl;
+	} else {
+		cout << "Command not found." << endl;
+	}
+
 	return 0;
 }
