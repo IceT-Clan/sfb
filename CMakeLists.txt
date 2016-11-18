@@ -14,6 +14,7 @@ configure_file (
 )
 
 include_directories (include)
+include_directories (serial/include)
 add_subdirectory (serial)
 
 if(WIN32)
