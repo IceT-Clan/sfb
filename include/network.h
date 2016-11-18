@@ -9,21 +9,24 @@ using namespace std;
 using namespace serial;
 
 class Network {
-private:
+public:
 	// Request packet structure
-	struct REQ_PACKET {
+	typedef struct {
 		Command::COMMANDS	cmd;
 		string				param;
-	};
+	} REQ_PACKET;
 
 	// Answer packet structure
-	struct ANS_PACKET {
+	typedef struct {
 		Command::COMMANDS	cmd;
 		string				answer;
-	};
-
-	Serial ser;
+	} ANS_PACKET;
+private:
+	Serial serial;
 public:
 	Network();
 	~Network();
+
+	bool		send(REQ_PACKET* req);
+	ANS_PACKET*	recv();
 };
