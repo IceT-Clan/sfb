@@ -2,6 +2,12 @@
 **sfb** is short for **S**erial **F**ile **B**rowser. It can be used to send and receive files
 over serial communication while also seeing the filesystem of your partner.
 
+## Build status
+| Branch      | Status                                                                                                             |
+|-------------|--------------------------------------------------------------------------------------------------------------------|
+| master      | [![Build Status](https://travis-ci.org/IceT-Clan/sfb.svg?branch=master)](https://travis-ci.org/IceT-Clan/sfb)      |
+| development | [![Build Status](https://travis-ci.org/IceT-Clan/sfb.svg?branch=development)](https://travis-ci.org/IceT-Clan/sfb) |
+
 ## Download
 * Binaries not yet available
 
