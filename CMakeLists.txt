@@ -16,7 +16,8 @@ configure_file (
 include_directories (include)
 add_subdirectory (serial)
 
-set (SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h)
+set (SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h src/network.cpp
+	include/network.h)
   
 # Add the executable
 add_executable (sfb ${SOURCES})
