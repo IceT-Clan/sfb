@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "sfb.h"
+#include "dirent.h"
 
 #ifdef _WIN32
 	#include "dirent.h"
