@@ -8,19 +8,20 @@
 using namespace std;
 using namespace serial;
 
+// Request packet structure
+typedef struct {
+	Command::COMMANDS	cmd;
+	string				param;
+} REQ_PACKET;
+
+// Answer packet structure
+typedef struct {
+	Command::COMMANDS	cmd;
+	string				answer;
+} ANS_PACKET;
+
 class Network {
 public:
-	// Request packet structure
-	typedef struct {
-		Command::COMMANDS	cmd;
-		string				param;
-	} REQ_PACKET;
-
-	// Answer packet structure
-	typedef struct {
-		Command::COMMANDS	cmd;
-		string				answer;
-	} ANS_PACKET;
 private:
 	Serial serial;
 public:
