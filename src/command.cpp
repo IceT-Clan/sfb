@@ -38,10 +38,38 @@ bool Command::read(int argc, char* argv[]) {
 }
 
 bool Command::exec() {
+	struct dirent *entry;
+
 	if (cmd == CMD_NONE) {
 		// No command to execute
 		return false;
 	}
 
+	DIR* dirp = opendir("c:\\");
+	while ((entry = readdir(dirp)))
+		cout << entry->d_type << "\t" << entry->d_namlen << "\t" << entry->d_reclen << "\t" << entry->d_name << endl;
+
+	closedir(dirp);
+
+	return true;
+}
+
+bool Command::start(string port) {
+	return true;
+}
+
+bool Command::cp(string origin, string destination) {
+	return true;
+}
+
+bool Command::mv(string origin, string destination) {
+	return true;
+}
+
+bool Command::ls() {
+	return true;
+}
+
+bool Command::la() {
 	return true;
 }

@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "sfb.h"
+#include "dirent.h"
 
 using namespace std;
 
@@ -10,6 +11,7 @@ private:
 	enum COMMANDS {
 		CMD_NONE,
 		CMD_HELP,
+		CMD_START,
 		CMD_COPY,
 		CMD_MOVE,
 		CMD_LS,
@@ -20,6 +22,7 @@ private:
 	map<string, COMMANDS>	cmd_map = {
 		{"", CMD_HELP},
 		{"help", CMD_HELP},
+		{"start", CMD_START},
 		{"cp", CMD_COPY},
 		{"mv", CMD_MOVE},
 		{"ls", CMD_LS},
@@ -31,4 +34,9 @@ public:
 
 	bool	read(int argc, char* argv[]);
 	bool	exec();
+	bool	start(string port);
+	bool	cp(string origin, string destination);
+	bool	mv(string origin, string destination);
+	bool	ls();
+	bool	la();
 };
