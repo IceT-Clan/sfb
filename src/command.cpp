@@ -8,27 +8,31 @@ Command::~Command() {
 }
 
 bool Command::read(int argc, char* argv[]) {
+	map<string, COMMANDS>::iterator it;
+
 	if (argc < 2) {
+		it = cmd_map.find("");
 		// No command given, fallback to default
-		if (cmd_map.find("") == cmd_map.end()) {
+		if (it == cmd_map.end()) {
 			// No default command set
 			return false;
 		}
 
 		// Set cmd to default command
-		cmd = cmd_map.find("")->second;
+		cmd = it->second;
 
 		return true;
 	}
 
 	// Determine which command was entered
-	if (cmd_map.find(argv[1]) == cmd_map.end()) {
+	it = cmd_map.find(argv[1]);
+	if (it == cmd_map.end()) {
 		// Command not found
 		return false;
 	}
 
 	// Set cmd to given command
-	cmd = cmd_map.find(argv[1])->second;
+	cmd = it->second;
 
 	return true;
 }
