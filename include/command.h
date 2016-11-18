@@ -3,10 +3,16 @@
 #include <map>
 #include "sfb.h"
 
+#ifdef _WIN32
+	#include "dirent.h"
+#else
+	#include <dirent.h>
+#endif
+
 using namespace std;
 
 class Command {
-private:
+public:
 	enum COMMANDS {
 		CMD_NONE,
 		CMD_HELP,
@@ -15,7 +21,7 @@ private:
 		CMD_LS,
 		CMD_LA,
 	};
-
+private:
 	COMMANDS				cmd;
 	map<string, COMMANDS>	cmd_map = {
 		{"", CMD_HELP},
