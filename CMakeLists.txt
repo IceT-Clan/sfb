@@ -13,9 +13,11 @@ configure_file (
 	"${PROJECT_SOURCE_DIR}/include/sfb.h"
 )
 
-include_directories(include)
+include_directories (include)
+add_subdirectory (serial)
 
-set(SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h)
+set (SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h)
   
 # Add the executable
-add_executable(sfb ${SOURCES})
+add_executable (sfb ${SOURCES})
+target_link_libraries(sfb serial)
