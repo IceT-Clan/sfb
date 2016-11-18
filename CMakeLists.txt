@@ -16,9 +16,20 @@ configure_file (
 include_directories (include)
 add_subdirectory (serial)
 
+if(WIN32)
+	include_directories (dirent/include)
+	add_subdirectory (dirent)
+endif()
+
 set (SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h src/network.cpp
 	include/network.h)
   
 # Add the executable
 add_executable (sfb ${SOURCES})
-target_link_libraries(sfb serial)
+
+# Link libraries
+if(WIN32)
+	target_link_libraries(sfb serial dirent)
+else()
+	target_link_libraries(sfb serial)
+endif()
