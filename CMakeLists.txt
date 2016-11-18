@@ -29,8 +29,4 @@ set (SOURCES src/sfb.cpp include/sfb.h src/command.cpp include/command.h src/net
 add_executable (sfb ${SOURCES})
 
 # Link libraries
-if(WIN32)
-	target_link_libraries(sfb serial dirent)
-else()
-	target_link_libraries(sfb serial)
-endif()
+target_link_libraries(sfb serial)

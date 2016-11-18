@@ -18,5 +18,7 @@ int main(int argc, char* argv[]) {
 		cout << "Command not found." << endl;
 	}
 
+	cmd.exec();
+
 	return 0;
 }
