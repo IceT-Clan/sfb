@@ -2,8 +2,6 @@
 #include <string>
 #include <map>
 #include "sfb.h"
-#include "dirent.h"
-
 #ifdef _WIN32
 	#include "dirent.h"
 #else
@@ -24,6 +22,11 @@ public:
 		CMD_LA,
 	};
 private:
+	// Arguments
+	int						argc;
+	char**					argv;
+
+	// Commands
 	COMMANDS				cmd;
 	map<string, COMMANDS>	cmd_map = {
 		{"", CMD_HELP},
@@ -35,14 +38,17 @@ private:
 		{"la", CMD_LA},
 	};
 public:
-	Command();
+	Command(int argc, char** argv);
 	~Command();
 
-	bool	read(int argc, char* argv[]);
+	bool	read();
 	bool	exec();
-	bool	start(string port);
-	bool	cp(string origin, string destination);
-	bool	mv(string origin, string destination);
-	bool	ls();
-	bool	la();
+private:
+	// Methods for all commands
+	bool	print_help();
+	bool	start();
+	bool	copy();
+	bool	move();
+	bool	list();
+	bool	listall();
 };

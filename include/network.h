@@ -21,7 +21,6 @@ typedef struct {
 } ANS_PACKET;
 
 class Network {
-public:
 private:
 	Serial serial;
 public:

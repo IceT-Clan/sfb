@@ -5,14 +5,14 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
-	Command cmd;
+int main(int argc, char** argv) {
+	Command cmd(argc, argv);
 
 	// Print version
 	cout << "sfb version " << SFB_VERSION << endl;
 
 	// Read command
-	if (cmd.read(argc, argv)) {
+	if (cmd.read()) {
 		cout << "Command valid" << endl;
 	} else {
 		cout << "Command not found." << endl;

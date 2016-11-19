@@ -1,13 +1,14 @@
 #include "command.h"
 
-Command::Command() {
+Command::Command(int argc, char** argv) {
+	this->argc = argc;
+	this->argv = argv;
 }
 
 Command::~Command() {
-
 }
 
-bool Command::read(int argc, char* argv[]) {
+bool Command::read() {
 	map<string, COMMANDS>::iterator it;
 
 	if (argc < 2) {
@@ -40,36 +41,57 @@ bool Command::read(int argc, char* argv[]) {
 bool Command::exec() {
 	struct dirent *entry;
 
-	if (cmd == CMD_NONE) {
-		// No command to execute
-		return false;
+	// Decide which command should be executed
+	switch (cmd) {
+		case CMD_NONE:
+			// No command to execute
+			return false;
+		case CMD_HELP:
+			print_help();
+			break;
+		case CMD_START:
+			start();
+			break;
+		case CMD_COPY:
+			copy();
+			break;
+		case CMD_MOVE:
+			move();
+			break;
+		case CMD_LS:
+			list();
+			break;
+		case CMD_LA:
+			listall();
+			break;
+		default:
+			// Something went really wrong...
+			return false;
 	}
 
-	DIR* dirp = opendir("c:\\");
-	while ((entry = readdir(dirp)))
-		cout << entry->d_type << "\t" << entry->d_namlen << "\t" << entry->d_reclen << "\t" << entry->d_name << endl;
-
-	closedir(dirp);
-
 	return true;
 }
 
-bool Command::start(string port) {
+bool Command::print_help() {
 	return true;
 }
 
-bool Command::cp(string origin, string destination) {
+bool Command::start() {
 	return true;
 }
 
-bool Command::mv(string origin, string destination) {
+bool Command::copy() {
 	return true;
 }
 
-bool Command::ls() {
+bool Command::move() {
 	return true;
 }
 
-bool Command::la() {
+bool Command::list() {
+	return true;
+}
+
+bool Command::listall() {
 	return true;
 }
