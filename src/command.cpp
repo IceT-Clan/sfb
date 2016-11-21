@@ -51,22 +51,22 @@ bool Command::exec() {
 			print_help();
 			break;
 		case CMD_START:
-			start();
+			start(argv);
 			break;
 		case CMD_COPY:
-			copy();
+			copy(argv);
 			break;
 		case CMD_MOVE:
-			move();
+			move(argv);
 			break;
 		case CMD_LS:
-			list();
+			list(argv);
 			break;
 		case CMD_LA:
-			listall();
+			listall(argv);
 			break;
 		case CMD_CD:
-			changedirectory();
+			changedirectory(argv);
 			break;
 		case CMD_PWD:
 			printworkingdirectory();
@@ -80,43 +80,46 @@ bool Command::exec() {
 }
 
 bool Command::print_help() {
-	cout << "Usage: " << argv[0] << " [help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl
-		<< "[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << endl <<
+	cout << "Usage: " << argv[0] << endl << 
+		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
+		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << endl <<
 		"Options:" << endl <<
-		setw(33) << "help	| help"						<< "Print this help" << endl <<
-		setw(33) << "start	| start"					<< "Start background deamon to establish a connection" << endl <<
-		setw(33) << ""									<< "to another computer through your serial connection" << endl <<
-		setw(33) << "cp		| copy"						<< "Copy one or more files to another location" << endl <<
-		setw(33) << "mv		| move"						<< "Move or rename files or directories" << endl <<
-		setw(33) << "ls		| list"						<< "List information about files" << endl <<
-		setw(33) << "la		| listall"					<< "List more specific informations about (hidden) files" << endl <<
-		setw(33) << "cd		| changedirectory"			<< "Change the current working directory to a specific Folder" << endl <<
-		setw(33) << "pwd	| print working directory"	<< "Print the current directory";
+		"help   | help                      Print this help" << endl <<
+		"start  | start                     Start background deamon to establish a connection" << endl <<
+		"                                   to another computer through your serial connection" << endl <<
+		"cp     | copy                      Copy one or more files to another location" << endl <<
+		"mv     | move                      Move or rename files or directories" << endl <<
+		"ls     | list                      List information about files" << endl <<
+		"la     | list all                  List more specific informations about (hidden) files" << endl <<
+		"cd     | changedirectory           Change the current working directory to a specific Folder" << endl <<
+		"pwd    | print working directory   Print the current directory" << endl << endl <<
+		"More informations on https://github.com/IceT-Clan/sfb" << endl << 
+		"or visit us on https://icet-clan.de/" << endl;
 
 	return true;
 }
 
-bool Command::start() {
+bool Command::start(char** argv) {
 	return true;
 }
 
-bool Command::copy() {
+bool Command::copy(char** argv) {
 	return true;
 }
 
-bool Command::move() {
+bool Command::move(char** argv) {
 	return true;
 }
 
-bool Command::list() {
+bool Command::list(char** argv) {
 	return true;
 }
 
-bool Command::listall() {
+bool Command::listall(char** argv) {
 	return true;
 }
 
-bool Command::changedirectory() {
+bool Command::changedirectory(char** argv) {
 	return true;
 }
 
