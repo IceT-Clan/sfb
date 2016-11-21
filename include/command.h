@@ -2,7 +2,7 @@
 #include <string>
 #include <map>
 #include "sfb.h"
-#include "serial\serial.h"
+#include "serial/serial.h"
 
 #ifdef _WIN32
 	#include "dirent.h"
