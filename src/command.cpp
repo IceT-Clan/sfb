@@ -84,8 +84,7 @@ bool Command::print_help() {
 		"la     | list all                  List more specific informations about (hidden) files" << endl <<
 		"cd     | changedirectory           Change the current working directory to a specific Folder" << endl <<
 		"pwd    | print working directory   Print the current directory" << endl << endl <<
-		"More informations on https://github.com/IceT-Clan/sfb" << endl << 
-		"or visit us on https://icet-clan.de/" << endl;
+		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl;
 
 	return true;
 }
