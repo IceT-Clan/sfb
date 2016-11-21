@@ -100,6 +100,22 @@ bool Command::print_help() {
 }
 
 bool Command::start(char** argv) {
+	string port;
+
+	//Check if there is a port given
+	if (argv[2] == "") {
+		//Check for Linux or Windows
+		if (argv[0] == "sfb" || argv[0] == "./sfb") port = "/dev/ttyS0";
+		else { port = "COM1"; }
+	}
+	//Use given port
+	else { port = argv[2]; }
+
+	//Ändern hab die default vorschäge genutzt!!!
+	//Serial serial(port, 9600, Timeout::simpleTimeout(250), eightbits, PARITY_NONE, ONESTOPBIT, flowcontrol_none);
+
+	cout << "Serial init complete on Port " << port << endl;
+	
 	return true;
 }
 
