@@ -18,7 +18,11 @@ int main(int argc, char** argv) {
 		cout << "Command not found." << endl;
 	}
 
-	cmd.exec();
+	if (cmd.exec()) {
+		cout << "Executed successfully." << endl;
+	} else {
+		cout << "Could not execute." << endl;
+	}
 
 	return 0;
 }

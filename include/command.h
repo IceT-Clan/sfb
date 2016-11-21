@@ -1,9 +1,12 @@
+#ifndef COMMAND_H
+#define COMMAND_H
+
 #include <iostream>
 #include <string>
 #include <map>
 #include "sfb.h"
 #include "serial/serial.h"
-
+#include "network.h"
 #ifdef _WIN32
 	#include "dirent.h"
 #else
@@ -14,22 +17,13 @@ using namespace std;
 using namespace serial;
 
 class Command {
-public:
-	enum COMMANDS {
-		CMD_NONE,
-		CMD_HELP,
-		CMD_START,
-		CMD_COPY,
-		CMD_MOVE,
-		CMD_LS,
-		CMD_LA,
-		CMD_CD,
-		CMD_PWD
-	};
 private:
 	// Arguments
 	int						argc;
 	char**					argv;
+
+	// Network
+	Network*				net;
 
 	// Commands
 	COMMANDS				cmd;
@@ -61,3 +55,5 @@ private:
 	bool	changedirectory();
 	bool	printworkingdirectory();
 };
+
+#endif /* COMMAND_H */

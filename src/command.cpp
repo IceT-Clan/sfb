@@ -1,4 +1,3 @@
-#include <iomanip>
 #include "command.h"
 
 Command::Command(int argc, char** argv) {
@@ -48,29 +47,21 @@ bool Command::exec() {
 			// No command to execute
 			return false;
 		case CMD_HELP:
-			print_help();
-			break;
+			return print_help();
 		case CMD_START:
-			start();
-			break;
+			return start();
 		case CMD_COPY:
-			copy();
-			break;
+			return copy();
 		case CMD_MOVE:
-			move();
-			break;
+			return move();
 		case CMD_LS:
-			list();
-			break;
+			return list();
 		case CMD_LA:
-			listall();
-			break;
+			return listall();
 		case CMD_CD:
-			changedirectory();
-			break;
+			return changedirectory();
 		case CMD_PWD:
-			printworkingdirectory();
-			break;
+			return printworkingdirectory();
 		default:
 			// Something went really wrong...
 			return false;
@@ -102,21 +93,23 @@ bool Command::print_help() {
 bool Command::start() {
 	string port;
 
-	//Check if there is a port given
-	if (argv[2] == "") {
-		//Check for Linux or Windows
-		if (argv[0] == "sfb" || argv[0] == "./sfb") port = "/dev/ttyS0";
-		else { port = "COM1"; }
+	if (argc < 3) {
+		// No port given, use default
+#ifdef _WIN32
+		port = "COM1";
+#else
+		port = "/dev/ttyS0";
+#endif
+	} else {
+		// Use given port
+		port = argv[2];
 	}
-	//Use given port
-	else { port = argv[2]; }
 
-	//Ändern hab die default vorschäge genutzt!!!
-	//Serial serial(port, 9600, Timeout::simpleTimeout(250), eightbits, PARITY_NONE, ONESTOPBIT, flowcontrol_none);
+	// Set up network class
+	net = new Network();
 
-	cout << "Serial init complete on Port " << port << endl;
-	
-	return true;
+	// Check if port is available and return result
+	return net->init(port);
 }
 
 bool Command::copy() {

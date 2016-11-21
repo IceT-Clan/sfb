@@ -1,9 +1,17 @@
 #include "network.h"
 
 Network::Network() {
+	serial = new Serial();
 }
 
 Network::~Network() {
+}
+
+bool Network::init(string port) {
+	serial->setPort(port);
+
+	// Check if port is open and return the result
+	return serial->isOpen();
 }
 
 bool Network::send(REQ_PACKET* req) {
