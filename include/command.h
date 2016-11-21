@@ -53,11 +53,11 @@ public:
 private:
 	// Methods for all commands
 	bool	print_help();
-	bool	start(char** argv);
-	bool	copy(char** argv);
-	bool	move(char** argv);
-	bool	list(char** argv);
-	bool	listall(char** argv);
-	bool	changedirectory(char** argv);
+	bool	start();
+	bool	copy();
+	bool	move();
+	bool	list();
+	bool	listall();
+	bool	changedirectory();
 	bool	printworkingdirectory();
 };

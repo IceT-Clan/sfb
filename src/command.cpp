@@ -51,22 +51,22 @@ bool Command::exec() {
 			print_help();
 			break;
 		case CMD_START:
-			start(argv);
+			start();
 			break;
 		case CMD_COPY:
-			copy(argv);
+			copy();
 			break;
 		case CMD_MOVE:
-			move(argv);
+			move();
 			break;
 		case CMD_LS:
-			list(argv);
+			list();
 			break;
 		case CMD_LA:
-			listall(argv);
+			listall();
 			break;
 		case CMD_CD:
-			changedirectory(argv);
+			changedirectory();
 			break;
 		case CMD_PWD:
 			printworkingdirectory();
@@ -80,7 +80,7 @@ bool Command::exec() {
 }
 
 bool Command::print_help() {
-	cout << "Usage: " << argv[0] << endl << 
+	cout << endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
 		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << endl <<
 		"Options:" << endl <<
@@ -99,7 +99,7 @@ bool Command::print_help() {
 	return true;
 }
 
-bool Command::start(char** argv) {
+bool Command::start() {
 	string port;
 
 	//Check if there is a port given
@@ -119,23 +119,23 @@ bool Command::start(char** argv) {
 	return true;
 }
 
-bool Command::copy(char** argv) {
+bool Command::copy() {
 	return true;
 }
 
-bool Command::move(char** argv) {
+bool Command::move() {
 	return true;
 }
 
-bool Command::list(char** argv) {
+bool Command::list() {
 	return true;
 }
 
-bool Command::listall(char** argv) {
+bool Command::listall() {
 	return true;
 }
 
-bool Command::changedirectory(char** argv) {
+bool Command::changedirectory() {
 	return true;
 }
 
