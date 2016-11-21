@@ -20,6 +20,8 @@ public:
 		CMD_MOVE,
 		CMD_LS,
 		CMD_LA,
+		CMD_CD,
+		CMD_PWD
 	};
 private:
 	// Arguments
@@ -36,6 +38,8 @@ private:
 		{"mv", CMD_MOVE},
 		{"ls", CMD_LS},
 		{"la", CMD_LA},
+		{"cd", CMD_CD},
+		{"pwd", CMD_PWD}
 	};
 public:
 	Command(int argc, char** argv);
@@ -51,4 +55,6 @@ private:
 	bool	move();
 	bool	list();
 	bool	listall();
+	bool	changedirectory();
+	bool	printworkingdirectory();
 };
