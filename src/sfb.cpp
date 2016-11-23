@@ -12,17 +12,11 @@ int main(int argc, char** argv) {
 	cout << "sfb version " << SFB_VERSION << endl;
 
 	// Read command
-	if (cmd.read()) {
-		cout << "Command valid" << endl;
-	} else {
+	if (!cmd.read()) {
 		cout << "Command not found." << endl;
 	}
-
-	if (cmd.exec()) {
-		cout << "Executed successfully." << endl;
-	} else {
-		cout << "Could not execute." << endl;
-	}
+	
+	cmd.exec();
 
 	return 0;
 }

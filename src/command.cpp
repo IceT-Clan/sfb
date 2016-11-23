@@ -51,14 +51,44 @@ bool Command::exec() {
 		case CMD_START:
 			return start();
 		case CMD_COPY:
+			if (argc < 4) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				return false;
+			}
+			if (argc > 4) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				return false;
+			}
 			return copy();
 		case CMD_MOVE:
+			if (argc < 4) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				return false;
+			}
+			if (argc > 4) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				return false;
+			}
 			return move();
 		case CMD_LS:
 			return list();
 		case CMD_LA:
 			return listall();
 		case CMD_CD:
+			if (argc < 3) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " cd <destination>" << endl;
+				return false;
+			}
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " cd <destination>" << endl;
+				return false;
+			}
 			return changedirectory();
 		case CMD_PWD:
 			return printworkingdirectory();
@@ -112,14 +142,78 @@ bool Command::start() {
 }
 
 bool Command::copy() {
+	REQ_PACKET			copy;
+
+	//Build copy packet
+	copy.cmd =			CMD_COPY;
+	copy.path0 =		argv[2];
+	copy.path1 =		argv[3];
+
+	//send packet
+	net->send(&copy);
+
+	net->recv();
+
+
 	return true;
 }
 
 bool Command::move() {
+	REQ_PACKET			move;
+
+	//Build move packet
+	move.cmd =			CMD_MOVE;
+	move.path0 =		argv[2];
+	move.path1 =		argv[3];
+
+	//send packet
+	net->send(&move);
+
+	net->recv();
+
+
 	return true;
 }
 
 bool Command::list() {
+
+	if (argv[2][0] == ':') {
+		DIR *dir;
+		struct dirent *ent;
+
+		//Open directory stream
+		dir = opendir(".");
+		if (dir != NULL) {
+
+			//Print all files and directories within the directory
+			while ((ent = readdir(dir)) != NULL) {
+				switch (ent->d_type) {
+				case DT_REG:
+					printf("%s\n", ent->d_name);
+					break;
+
+				case DT_DIR:
+					printf("%s/\n", ent->d_name);
+					break;
+
+				case DT_LNK:
+					printf("%s@\n", ent->d_name);
+					break;
+
+				default:
+					printf("%s*\n", ent->d_name);
+				}
+			}
+
+			closedir(dir);
+
+		}
+		else {
+			//Could not open directory
+			printf("Cannot open directory %s\n", ".");
+			exit(EXIT_FAILURE);
+		}
+	}
 	return true;
 }
 
@@ -128,9 +222,44 @@ bool Command::listall() {
 }
 
 bool Command::changedirectory() {
+
+	if (argv[2][0] == ':') {
+		DIR *dir;
+
+		//Change local directory
+		dir = opendir(argv[2] + 1);
+		if (dir = NULL) {
+			//Could not open directory
+			printf("Cannot open directory %s\n", ".");
+			exit(EXIT_FAILURE);
+		}
+		closedir(dir);
+	}
+
+	REQ_PACKET						changedirectory;
+
+	//Build changedirectory packet
+	changedirectory.cmd =			CMD_CD;
+	changedirectory.path0 =			argv[2];
+
+	//send packet
+	net->send(&changedirectory);
+
+	net->recv();
+
+
 	return true;
 }
 
 bool Command::printworkingdirectory() {
+	REQ_PACKET						pwd;
+
+	//Build printworkingdirectory packet
+	pwd.cmd = CMD_PWD;
+
+	//send packet
+	net->send(&pwd);
+
+	net->recv();
 	return true;
 }

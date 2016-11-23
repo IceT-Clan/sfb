@@ -11,6 +11,12 @@ bool Network::init(string port) {
 	serial->setPort(port);
 
 	// Check if port is open and return the result
+	serial->open();
+
+	serial->setDTR();
+
+	while (true) {};
+
 	return serial->isOpen();
 }
 
