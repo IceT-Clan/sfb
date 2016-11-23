@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
 	COMMANDS	cmd;
 	fstream*	file;
+	string		filename;
 	bool		success;
 } ANS_PACKET;
 
