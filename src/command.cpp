@@ -108,7 +108,9 @@ bool Command::start() {
 	net = new Network();
 
 	// Check if port is available and return result
-	return net->init(port);
+	net->init(port);
+
+	return true;
 }
 
 bool Command::copy() {
