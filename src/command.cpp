@@ -1,4 +1,11 @@
 #include "command.h"
+#include <fstream>
+#include <errno.h>
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 
 Command::Command(int argc, char** argv) {
 	this->argc = argc;
@@ -91,19 +98,33 @@ bool Command::print_help() {
 
 bool Command::start() {
 	string port;
+	bool background = false;
+	if (argc > 4) return false;
 
-	if (argc < 3) {
-		// No port given, use default
+	// Iterate over all arguments
+	string arg;
+	for (int i = 2; i < argc; i++) {
+		arg = string(argv[i]);
+		if (arg.compare("-b") == 0) {
+			background = true;
+		} else {
+			if (!port.empty()) {
+				cerr << "Invalid arguments" << endl;
+				return false;
+			}
+			port = arg;
+		}
+	}
+	if (port.empty()) {
 #ifdef _WIN32
 		port = "COM1";
 #else
 		port = "/dev/ttyS0";
 #endif
-	} else {
-		// Use given port
-		port = argv[2];
 	}
-
+	if (background) {
+		return startInBackground(port);
+	}
 	// Set up network class
 	net = new Network();
 
@@ -116,6 +137,44 @@ bool Command::copy() {
 }
 
 bool Command::move() {
+	if (argc != 4) {
+		// Invalid argument count
+		return false;
+	}
+	//Paths
+	string sourcePath(argv[2]);
+	string targetPath(argv[3]);
+
+	bool isSourceHere = true;
+	bool isTargetHere = true;
+
+	//Test for and remove ':'
+	if (sourcePath[0] == ':') {
+		isSourceHere = false;
+		sourcePath.erase(0, 1);
+	}
+	if (targetPath[0] == ':') {
+		isTargetHere = false;
+		targetPath.erase(0, 1);
+	}
+
+	// Test target file
+	if (checkFile(argv[3], true)) return false;
+
+	//files
+	ifstream source;
+	ofstream target;
+
+	//Open files
+	source.open(argv[2], ios_base::in | ios_base::binary);
+	if (!source.is_open()) {
+		cerr << "Error opening source: " << strerror(errno) << endl;
+	}
+	target.open(argv[2], ios_base::out | ios_base::binary);
+	if (!target.is_open()) {
+		cerr << "Error opening target: " << strerror(errno) << endl;
+	}
+
 	return true;
 }
 
@@ -134,3 +193,78 @@ bool Command::changedirectory() {
 bool Command::printworkingdirectory() {
 	return true;
 }
+
+bool Command::checkFile(string name, bool askForOverride) {
+	ifstream target;
+	target.open(argv[3], ios_base::in | ios_base::binary);
+	if (!target.is_open()) {
+		string error = strerror(errno);
+		if (error.compare("No such file or directory") == 0) {
+			return false;
+		}
+	}
+	target.close();
+	cout << "File with the same name already exists! Do you want to override it? [y/N]" << endl;
+	string input;
+	cin >> input;
+	if (input.compare("y") != 0) {
+		return true;
+	}
+	if (remove(name.c_str()) != 0) {
+		perror("Error deleting the file");
+		return true;
+	}
+	return false;
+}
+
+#ifdef _WIN32
+bool Command::startInBackground(string port) {
+	LPCTSTR lpApplicationName = "\"M:\\Visual Studio 2015\\Projects\\sfb\\build\\Debug\\sfb.exe\"";
+	LPTSTR lpCommandLine = strdup(("start " + port + " -b").c_str());
+
+	STARTUPINFO lpStartupInfo;
+	PROCESS_INFORMATION lpProcessInfo;
+
+	memset(&lpStartupInfo, 0, sizeof(lpStartupInfo));
+	memset(&lpProcessInfo, 0, sizeof(lpProcessInfo));
+
+	/* Create the process */
+	if (!CreateProcess(lpApplicationName, lpCommandLine, NULL, NULL, false, 0, NULL, NULL, &lpStartupInfo, &lpProcessInfo)) {
+		cerr << "Failed to create background process" << endl;
+		return false;
+	}
+
+	return true;
+}
+#else
+/**
+* Source:
+* http://www.cplusplus.com/forum/lounge/17684/
+*/
+bool Command::startInBackground(string port) {
+	char* programPath = "/sfb.exe";
+
+	pid_t pid = fork(); /* Create a child process */
+
+	switch (pid) {
+	case -1: /* Error */
+		std::cerr << "Uh-Oh! fork() failed.\n";
+		exit(1);
+	case 0: /* Child process */
+		execl(programPath, NULL); /* Execute the program */
+		std::cerr << "Uh-Oh! execl() failed!"; /* execl doesn't return unless there's an error */
+		exit(1);
+	default: /* Parent process */
+		std::cout << "Process created with pid " << pid << "\n";
+		int status;
+
+		while (!WIFEXITED(status)) {
+			waitpid(pid, status, 0); /* Wait for the process to complete */
+		}
+
+		std::cout << "Process exited with " << WEXITSTATUS(status) << "\n";
+
+		return 0;
+	}
+}
+#endif

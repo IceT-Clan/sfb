@@ -25,8 +25,8 @@ enum COMMANDS {
 // Request packet structure
 typedef struct {
 	COMMANDS	cmd;
-	string		path0;
-	string		path1;
+	string		sourcePath;	// Null when file is on sender system
+	string		targetPath;
 } REQ_PACKET;
 
 // Answer packet structure

@@ -54,6 +54,14 @@ private:
 	bool	listall();
 	bool	changedirectory();
 	bool	printworkingdirectory();
+
+	/**
+	*Checks if a file exists
+	*
+	*returns true when the file exists after the method returns
+	*/
+	bool	checkFile(string name, bool askForOverride);
+	bool	startInBackground(string port);
 };
 
 #endif /* COMMAND_H */
