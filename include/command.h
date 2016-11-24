@@ -9,6 +9,7 @@
 #include "network.h"
 #ifdef _WIN32
 	#include "dirent.h"
+	#include "direct.h"
 #else
 	#include <dirent.h>
 #endif

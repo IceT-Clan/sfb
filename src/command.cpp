@@ -75,8 +75,18 @@ bool Command::exec() {
 			}
 			return move();
 		case CMD_LS:
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " ls [path]" << endl;
+				return false;
+			}
 			return list();
 		case CMD_LA:
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " la [path]" << endl;
+				return false;
+			}
 			return listall();
 		case CMD_CD:
 			if (argc < 3) {
@@ -176,32 +186,37 @@ bool Command::move() {
 }
 
 bool Command::list() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
 		DIR *dir;
 		struct dirent *ent;
 
 		//Open directory stream
-		dir = opendir(".");
+		dir = opendir(argv[2] + 1);
 		if (dir != NULL) {
 
 			//Print all files and directories within the directory
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					printf("%s\n", ent->d_name);
+					cout << ent->d_name << " ";
 					break;
 
 				case DT_DIR:
-					printf("%s/\n", ent->d_name);
+					//Set font color to blue
+					SetConsoleTextAttribute(hConsole, 1);
+					cout << ent->d_name << "/ ";
+					//Reset font color
+					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
-					printf("%s@\n", ent->d_name);
+					cout << ent->d_name << " ";
 					break;
 
 				default:
-					printf("%s*\n", ent->d_name);
+					cout << ent->d_name << " ";
 				}
 			}
 
@@ -210,7 +225,7 @@ bool Command::list() {
 		}
 		else {
 			//Could not open directory
-			printf("Cannot open directory %s\n", ".");
+			cout << "Cannot open directory " << argv[2] + 1 << endl;
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -218,22 +233,58 @@ bool Command::list() {
 }
 
 bool Command::listall() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	if (argv[2][0] == ':') {
+		DIR *dir;
+		struct dirent *ent;
+		
+		//Open directory stream
+		dir = opendir(argv[2] + 1);
+		if (dir != NULL) {
+
+			//Print all files and directories within the directory
+			while ((ent = readdir(dir)) != NULL) {
+				switch (ent->d_type) {
+				case DT_REG:
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					break;
+
+				case DT_DIR:
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
+					//Set font color to blue
+					SetConsoleTextAttribute(hConsole, 1);
+					cout << ent->d_name << "/" << endl;
+					//Reset font color
+					SetConsoleTextAttribute(hConsole, 15);
+					break;
+
+				case DT_LNK:
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					break;
+
+				default:
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+				}
+			}
+
+			closedir(dir);
+
+		}
+		else {
+			//Could not open directory
+			cout << "Cannot open directory " << argv[2] + 1 << endl;
+			exit(EXIT_FAILURE);
+		}
+	}
 	return true;
 }
 
 bool Command::changedirectory() {
 
 	if (argv[2][0] == ':') {
-		DIR *dir;
-
 		//Change local directory
-		dir = opendir(argv[2] + 1);
-		if (dir = NULL) {
-			//Could not open directory
-			printf("Cannot open directory %s\n", ".");
-			exit(EXIT_FAILURE);
-		}
-		closedir(dir);
+		chdir(argv[2] + 1);
 	}
 
 	REQ_PACKET						changedirectory;
