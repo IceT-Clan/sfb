@@ -75,8 +75,16 @@ bool Command::exec() {
 			}
 			return move();
 		case CMD_LS:
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " ls [path]" << endl;
+			}
 			return list();
 		case CMD_LA:
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " la [path]" << endl;
+			}
 			return listall();
 		case CMD_CD:
 			if (argc < 3) {
@@ -91,6 +99,11 @@ bool Command::exec() {
 			}
 			return changedirectory();
 		case CMD_PWD:
+			if (argc > 2) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " pwd" << endl;
+				return false;
+			}
 			return printworkingdirectory();
 		default:
 			// Something went really wrong...
@@ -182,26 +195,26 @@ bool Command::list() {
 		struct dirent *ent;
 
 		//Open directory stream
-		dir = opendir(".");
+		dir = opendir(argv[2] + 1);
 		if (dir != NULL) {
 
 			//Print all files and directories within the directory
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					printf("%s\n", ent->d_name);
+					cout << ent->d_name << " ";
 					break;
 
 				case DT_DIR:
-					printf("%s/\n", ent->d_name);
+					cout << ent->d_name << "\\ ";
 					break;
 
 				case DT_LNK:
-					printf("%s@\n", ent->d_name);
+					cout << ent->d_name << " ";
 					break;
 
 				default:
-					printf("%s*\n", ent->d_name);
+					cout << ent->d_name << " ";
 				}
 			}
 
@@ -210,7 +223,7 @@ bool Command::list() {
 		}
 		else {
 			//Could not open directory
-			printf("Cannot open directory %s\n", ".");
+			printf("Cannot open directory %s\n", argv[2] + 1);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -218,6 +231,40 @@ bool Command::list() {
 }
 
 bool Command::listall() {
+	if (argv[2][0] == ':') {
+		DIR *dir;
+		struct dirent *ent;
+
+		//Open directory stream
+		dir = opendir(argv[2] + 1);
+		if (dir != NULL) {
+
+			//Print all files and directories within the directory
+			while ((ent = readdir(dir)) != NULL) {
+				switch (ent->d_type) {
+				case DT_REG:
+					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+					break;
+				case DT_DIR:
+					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << "\\" << endl;
+					break;
+				case DT_LNK:
+					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+					break;
+				default:
+					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+				}
+			}
+
+			closedir(dir);
+
+		}
+		else {
+			//Could not open directory
+			printf("Cannot open directory %s\n", argv[2] + 1);
+			exit(EXIT_FAILURE);
+		}
+	}
 	return true;
 }
 
