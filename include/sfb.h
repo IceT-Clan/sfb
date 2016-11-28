@@ -19,7 +19,10 @@ enum COMMANDS {
 	CMD_LS,
 	CMD_LA,
 	CMD_CD,
-	CMD_PWD
+	CMD_PWD,
+	CMD_MKDIR,
+	CMD_TOUCH,
+	CMD_RM
 };
 
 // Request packet structure

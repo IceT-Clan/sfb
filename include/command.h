@@ -38,7 +38,10 @@ private:
 		{"ls", CMD_LS},
 		{"la", CMD_LA},
 		{"cd", CMD_CD},
-		{"pwd", CMD_PWD}
+		{"pwd", CMD_PWD},
+		{"mkdir", CMD_MKDIR},
+		{"touch", CMD_TOUCH},
+		{"rm", CMD_RM}
 	};
 public:
 	Command(int argc, char** argv);

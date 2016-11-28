@@ -105,6 +105,39 @@ bool Command::exec() {
 				return false;
 			}
 			return printworkingdirectory();
+		case CMD_MKDIR:
+			if (argc < 3) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				return false;
+			}
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				return false;
+			}
+		case CMD_TOUCH:
+			if (argc < 3) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl;
+				return false;
+			}
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl;
+				return false;
+			}
+		case CMD_RM:
+			if (argc < 3) {
+				cerr << "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl;
+				return false;
+			}
+			if (argc > 3) {
+				cerr << "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl;
+				return false;
+			}
 		default:
 			// Something went really wrong...
 			return false;
@@ -116,7 +149,7 @@ bool Command::exec() {
 bool Command::print_help() {
 	cout << endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
-		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << endl <<
+		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm [-rf] <path>]" << endl <<
 		"Options:" << endl <<
 		"help   | help                      Print this help" << endl <<
 		"start  | start                     Start background deamon to establish a connection" << endl <<
@@ -125,8 +158,11 @@ bool Command::print_help() {
 		"mv     | move                      Move or rename files or directories" << endl <<
 		"ls     | list                      List information about files" << endl <<
 		"la     | list all                  List more specific informations about (hidden) files" << endl <<
-		"cd     | changedirectory           Change the current working directory to a specific Folder" << endl <<
-		"pwd    | print working directory   Print the current directory" << endl << endl <<
+		"cd     | change directory          Change the current working directory to a specific Folder" << endl <<
+		"pwd    | print working directory   Print the current directory" << endl <<
+		"mkdir  | make directory            Create a directory at the given path" << endl <<
+		"touch  | create file               Create a file at the given path" << endl <<
+		"rm     | remove file               Remove a file or directory" << endl << endl << 
 		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl;
 
 	return true;
