@@ -17,21 +17,27 @@ class Network
 {
 	private:
 		Serial*			serial;
-		vector<uint8_t> bytes;
+		//vector<uint8_t byte;
 		string			filename;
 
-		ANS_PACKET		anspacket;
+		DATA_PACKET		anspacket;
 	public:
 		Network();
 		~Network();
 
 		bool		Network::readfileinfos(string path);
+
 		bool		init(string port);
 		bool		send(REQ_PACKET* req);
+
 		string getfilename(string path);
 				
-		ANS_PACKET*	recv();
+		DATA_PACKET* recv();
 
+		bool		send(const REQ_PACKET &pkt );
+		bool		send(const INFO_PACKET &pkt);
+		bool		send(const CONF_PACKET &pkt);
+		bool		send(const DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */

@@ -21,20 +21,35 @@ enum COMMANDS {
 	CMD_CD,
 	CMD_PWD
 };
+enum PACKETS {
+	REQUEST,
+	INFO,
+	CONF,
+	DATA
+};
 
 // Request packet structure
 typedef struct {
 	COMMANDS	cmd;
-	string		path0;
-	string		path1;
+	string		path0;	// Quelle
+	string		path1;	// Ort
 } REQ_PACKET;
+
+// Data Info Answer
+typedef struct {
+	size_t		bytesnr;
+} INFO_PACKET;
+
+// Send? 
+typedef struct {
+	bool		confirmation;
+} CONF_PACKET;
 
 // Answer packet structure
 typedef struct {
-	COMMANDS	cmd;
-	fstream*	file;
-	string		filename;
-	bool		success;
-} ANS_PACKET;
+	uint8_t		bytes[252];
+	uint32_t	checksum;
+} DATA_PACKET;
+
 
 #endif /* SFB_H */

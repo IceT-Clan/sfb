@@ -26,7 +26,7 @@ bool Network::readfileinfos(string path) {
 	///
 	///Get File Name
 	///
-	anspacket.filename = getfilename(path);
+	filename = getfilename(path);
 	///
 	///Save binary data in 8bit vector
 	///
@@ -48,7 +48,20 @@ bool Network::send(REQ_PACKET* req) {
 	return true;
 }
 
-ANS_PACKET* Network::recv() {
+DATA_PACKET* Network::recv() {
 	return NULL;
+}
+
+bool		Network::send(const REQ_PACKET &pkt) {
+
+}
+bool		Network::send(const INFO_PACKET &pkt) {
+
+}
+bool		Network::send(const CONF_PACKET &pkt) {
+
+}
+bool		Network::send(const DATA_PACKET &pkt) {
+
 }
 
