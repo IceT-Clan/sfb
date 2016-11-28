@@ -61,7 +61,7 @@ private:
 	*returns true when the file exists after the method returns
 	*/
 	bool	checkFile(string name, bool askForOverride);
-	bool	startInBackground(string port);
+	bool	startInBackground(string port, bool hideConsole);
 };
 
 #endif /* COMMAND_H */

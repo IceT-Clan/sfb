@@ -99,6 +99,7 @@ bool Command::print_help() {
 bool Command::start() {
 	string port;
 	bool background = false;
+	bool hideConsole = false;
 	if (argc > 4) return false;
 
 	// Iterate over all arguments
@@ -107,6 +108,8 @@ bool Command::start() {
 		arg = string(argv[i]);
 		if (arg.compare("-b") == 0) {
 			background = true;
+		} else if (arg.compare("-h") == 0) {
+			hideConsole = true;
 		} else {
 			if (!port.empty()) {
 				cerr << "Invalid arguments" << endl;
@@ -123,8 +126,13 @@ bool Command::start() {
 #endif
 	}
 	if (background) {
-		return startInBackground(port);
+		return startInBackground(port, hideConsole);
 	}
+	if (!background && hideConsole) {
+		FreeConsole();
+	}
+
+	while (true);
 	// Set up network class
 	net = new Network();
 
@@ -218,9 +226,8 @@ bool Command::checkFile(string name, bool askForOverride) {
 }
 
 #ifdef _WIN32
-bool Command::startInBackground(string port) {
-	LPCTSTR lpApplicationName = "\"M:\\Visual Studio 2015\\Projects\\sfb\\build\\Debug\\sfb.exe\"";
-	LPTSTR lpCommandLine = strdup(("start " + port + " -b").c_str());
+bool Command::startInBackground(string port, bool hideConsole) {
+	LPTSTR lpCommandLine = strdup(("sfb.exe start " + port + (hideConsole ? " -h" : "")).c_str());
 
 	STARTUPINFO lpStartupInfo;
 	PROCESS_INFORMATION lpProcessInfo;
@@ -229,7 +236,7 @@ bool Command::startInBackground(string port) {
 	memset(&lpProcessInfo, 0, sizeof(lpProcessInfo));
 
 	/* Create the process */
-	if (!CreateProcess(lpApplicationName, lpCommandLine, NULL, NULL, false, 0, NULL, NULL, &lpStartupInfo, &lpProcessInfo)) {
+	if (!CreateProcess(NULL, lpCommandLine, NULL, NULL, false, CREATE_NEW_CONSOLE, NULL, NULL, &lpStartupInfo, &lpProcessInfo)) {
 		cerr << "Failed to create background process" << endl;
 		return false;
 	}
