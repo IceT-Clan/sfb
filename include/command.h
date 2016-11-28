@@ -7,8 +7,10 @@
 #include "sfb.h"
 #include "serial/serial.h"
 #include "network.h"
+
 #ifdef _WIN32
 	#include "dirent.h"
+	#include "direct.h"
 #else
 	#include <dirent.h>
 #endif
@@ -54,6 +56,9 @@ private:
 	bool	listall();
 	bool	changedirectory();
 	bool	printworkingdirectory();
+	bool	makedirectory();
+	bool	makefile();
+	bool	remove();
 };
 
 #endif /* COMMAND_H */

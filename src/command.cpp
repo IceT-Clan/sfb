@@ -189,6 +189,7 @@ bool Command::move() {
 }
 
 bool Command::list() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
 		DIR *dir;
@@ -206,7 +207,11 @@ bool Command::list() {
 					break;
 
 				case DT_DIR:
-					cout << ent->d_name << "\\ ";
+					//Set font color to blue
+					SetConsoleTextAttribute(hConsole, 1);
+					cout << ent->d_name << "/ ";
+					//Reset font color
+					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
@@ -223,7 +228,7 @@ bool Command::list() {
 		}
 		else {
 			//Could not open directory
-			printf("Cannot open directory %s\n", argv[2] + 1);
+			cout << "Cannot open directory " << argv[2] + 1 << endl;
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -231,6 +236,8 @@ bool Command::list() {
 }
 
 bool Command::listall() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	if (argv[2][0] == ':') {
 		DIR *dir;
 		struct dirent *ent;
@@ -243,16 +250,24 @@ bool Command::listall() {
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
 					break;
+
 				case DT_DIR:
-					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << "\\" << endl;
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
+					//Set font color to blue
+					SetConsoleTextAttribute(hConsole, 1);
+					cout << ent->d_name << "/" << endl;
+					//Reset font color
+					SetConsoleTextAttribute(hConsole, 15);
 					break;
+
 				case DT_LNK:
-					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
 					break;
+
 				default:
-					cout << ent->d_reclen << " " << ent->d_namlen << " " << ent->d_type << " " << ent->d_name << endl;
+					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
 				}
 			}
 
@@ -261,7 +276,7 @@ bool Command::listall() {
 		}
 		else {
 			//Could not open directory
-			printf("Cannot open directory %s\n", argv[2] + 1);
+			cout << "Cannot open directory " << argv[2] + 1 << endl;
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -271,16 +286,8 @@ bool Command::listall() {
 bool Command::changedirectory() {
 
 	if (argv[2][0] == ':') {
-		DIR *dir;
-
 		//Change local directory
-		dir = opendir(argv[2] + 1);
-		if (dir = NULL) {
-			//Could not open directory
-			printf("Cannot open directory %s\n", ".");
-			exit(EXIT_FAILURE);
-		}
-		closedir(dir);
+		chdir(argv[2] + 1);
 	}
 
 	REQ_PACKET						changedirectory;
@@ -308,5 +315,60 @@ bool Command::printworkingdirectory() {
 	net->send(&pwd);
 
 	net->recv();
+	return true;
+}
+
+bool Command::makedirectory() {
+	if (argv[2][0] == ':') {
+#ifdef _WIN32
+		string option = argv[2] + 1;
+		string command = "mkdir " + option;
+		system((const char*)command.c_str());
+#else
+
+#endif
+	}
+	return true;
+}
+
+bool Command::makefile() {
+	if (argv[2][0] == ':') {
+		string option = argv[2] + 1;
+#ifdef _WIN32
+		string command = "copy nul > " + option;
+		system((const char*)command.c_str());
+#else
+		string command = "touch " + option;
+		system(command);
+#endif
+	}
+	return true;
+}
+
+bool Command::remove() {
+	if (argv[2][0] == ':') {
+		if (argv[2][0] == '-rf' || argv[2][0] == '-rF') {
+			string option = argv[2] + 1;
+#ifdef _WIN32
+			string command = "rmdir" + option;
+			system((const char*)command.c_str());
+#else
+			if (argv[2][0] == '-r') {
+				string command = "rm -r " + option;
+				system(command);
+			}
+			string command = "rm -rf " + option;
+			system(command);
+#endif
+		}
+		string option = argv[2] + 1;
+#ifdef _WIN32
+		string command = "del " + option;
+		system((const char*)command.c_str());
+#else
+		string command = "rm " + option;
+		system(command);
+#endif
+	}
 	return true;
 }
