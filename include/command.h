@@ -7,12 +7,12 @@
 #include "sfb.h"
 #include "serial/serial.h"
 #include "network.h"
-
 #ifdef _WIN32
 	#include "dirent.h"
 	#include "direct.h"
 #else
 	#include <dirent.h>
+	#include <unistd.h>
 #endif
 
 using namespace std;

@@ -225,6 +225,7 @@ bool Command::move() {
 }
 
 bool Command::list() {
+#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
@@ -268,10 +269,12 @@ bool Command::list() {
 			exit(EXIT_FAILURE);
 		}
 	}
+#endif
 	return true;
 }
 
 bool Command::listall() {
+#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
@@ -316,17 +319,19 @@ bool Command::listall() {
 			exit(EXIT_FAILURE);
 		}
 	}
+#else
+	// TODO
+#endif
 	return true;
 }
 
 bool Command::changedirectory() {
-
 	if (argv[2][0] == ':') {
 		//Change local directory
 		chdir(argv[2] + 1);
 	}
 
-	REQ_PACKET						changedirectory;
+	REQ_PACKET changedirectory;
 
 	//Build changedirectory packet
 	changedirectory.cmd =			CMD_CD;
@@ -342,7 +347,7 @@ bool Command::changedirectory() {
 }
 
 bool Command::printworkingdirectory() {
-	REQ_PACKET						pwd;
+	REQ_PACKET pwd;
 
 	//Build printworkingdirectory packet
 	pwd.cmd = CMD_PWD;
@@ -355,56 +360,58 @@ bool Command::printworkingdirectory() {
 }
 
 bool Command::makedirectory() {
+	string option, command;
+
 	if (argv[2][0] == ':') {
 #ifdef _WIN32
-		string option = argv[2] + 1;
-		string command = "mkdir " + option;
-		system((const char*)command.c_str());
+		option = argv[2] + 1;
+		command = "mkdir " + option;
 #else
-
+	// TODO
 #endif
+	system((const char*)command.c_str());
 	}
 	return true;
 }
 
 bool Command::makefile() {
+	string command, option;
+
 	if (argv[2][0] == ':') {
-		string option = argv[2] + 1;
+		option = argv[2] + 1;
 #ifdef _WIN32
-		string command = "copy nul > " + option;
-		system((const char*)command.c_str());
+		command = "copy nul > " + option;
 #else
-		string command = "touch " + option;
-		system(command);
+		command = "touch " + option;
 #endif
+		system((const char*)command.c_str());
 	}
 	return true;
 }
 
 bool Command::remove() {
+	string command, option;
+
 	if (argv[2][0] == ':') {
 		if (argv[2][0] == '-rf' || argv[2][0] == '-rF') {
 			string option = argv[2] + 1;
 #ifdef _WIN32
-			string command = "rmdir" + option;
-			system((const char*)command.c_str());
+			command = "rmdir" + option;
 #else
 			if (argv[2][0] == '-r') {
-				string command = "rm -r " + option;
-				system(command);
+				command = "rm -r " + option;
 			}
-			string command = "rm -rf " + option;
-			system(command);
+			 command = "rm -rf " + option;
 #endif
+			system((const char*)command.c_str());
 		}
-		string option = argv[2] + 1;
+		option = argv[2] + 1;
 #ifdef _WIN32
-		string command = "del " + option;
-		system((const char*)command.c_str());
+		 command = "del " + option;
 #else
-		string command = "rm " + option;
-		system(command);
+		 command = "rm " + option;
 #endif
+		system((const char*)command.c_str());
 	}
 	return true;
 }

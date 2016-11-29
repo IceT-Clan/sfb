@@ -22,7 +22,7 @@ enum COMMANDS {
 	CMD_PWD,
 	CMD_MKDIR,
 	CMD_TOUCH,
-	CMD_RM
+	CMD_RM,
 };
 
 // Request packet structure
