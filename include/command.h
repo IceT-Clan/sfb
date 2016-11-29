@@ -9,8 +9,10 @@
 #include "network.h"
 #ifdef _WIN32
 	#include "dirent.h"
+	#include "direct.h"
 #else
 	#include <dirent.h>
+	#include <unistd.h>
 #endif
 
 using namespace std;
@@ -36,7 +38,10 @@ private:
 		{"ls", CMD_LS},
 		{"la", CMD_LA},
 		{"cd", CMD_CD},
-		{"pwd", CMD_PWD}
+		{"pwd", CMD_PWD},
+		{"mkdir", CMD_MKDIR},
+		{"touch", CMD_TOUCH},
+		{"rm", CMD_RM}
 	};
 public:
 	Command(int argc, char** argv);
@@ -54,6 +59,16 @@ private:
 	bool	listall();
 	bool	changedirectory();
 	bool	printworkingdirectory();
+	bool	makedirectory();
+	bool	makefile();
+	bool	remove();
+	bool	startInBackground(string port, bool hideConsole);
+	/**
+	*Checks if a file exists
+	*
+	*returns true when the file exists after the method returns
+	*/
+	bool	checkFile(string name, bool askForOverride);
 };
 
 #endif /* COMMAND_H */

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
 #include "sfb.h"
 #include "serial/serial.h"
 
@@ -12,16 +13,31 @@ using namespace serial;
 
 class Command;
 
-class Network {
-private:
-	Serial* serial;
-public:
-	Network();
-	~Network();
+class Network 
+{
+	private:
+		Serial*			serial;
+		//vector<uint8_t byte;
+		string			filename;
 
-	bool		init(string port);
-	bool		send(REQ_PACKET* req);
-	ANS_PACKET*	recv();
+		DATA_PACKET		anspacket;
+	public:
+		Network();
+		~Network();
+
+		bool		readfileinfos(string path);
+
+		bool		init(string port);
+		bool		send(REQ_PACKET* req);
+
+		string getfilename(string path);
+				
+		DATA_PACKET* recv();
+
+		bool		send(const REQ_PACKET &pkt );
+		bool		send(const INFO_PACKET &pkt);
+		bool		send(const CONF_PACKET &pkt);
+		bool		send(const DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */

@@ -6,15 +6,15 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-	Command cmd(argc, argv);
 
+
+	Command cmd(argc, argv);
+	
 	// Print version
 	cout << "sfb version " << SFB_VERSION << endl;
 
 	// Read command
-	if (cmd.read()) {
-		cout << "Command valid" << endl;
-	} else {
+	if (!cmd.read()) {
 		cout << "Command not found." << endl;
 	}
 
@@ -23,6 +23,5 @@ int main(int argc, char** argv) {
 	} else {
 		cout << "Could not execute." << endl;
 	}
-
 	return 0;
 }
