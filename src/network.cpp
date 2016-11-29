@@ -40,6 +40,7 @@ bool Network::readfileinfos(string path) {
 bool Network::init(string port) {
 	serial->setPort(port);
 
+<<<<<<< HEAD
 	// Check if port is open and return the result
 	serial->open();
 
@@ -47,6 +48,21 @@ bool Network::init(string port) {
 	serial->setDTR();
 
 	return serial->isOpen();
+=======
+	// Check availability of serial port
+	serial->open();
+	if (!serial->isOpen()) {
+		// Port could not be opened
+		cerr << "Port \"" << port << "\" could not be opened." << endl;
+		return false;
+	}
+
+	// Wait until partner is ready
+	cout << "Waiting for connection..." << endl;
+	while (!serial->getCD()) {};
+
+	return true;
+>>>>>>> f7e64dc223865b6806336c4b33b392f12f580be8
 }
 
 bool Network::send(REQ_PACKET* req) {
