@@ -490,12 +490,10 @@ bool Command::checkFile(string name, bool askForOverride) {
 		return true;
 	}
 
-	// TODO: Fix it. This code does not compile (tested under linux)
-	//		 There is no remove(const char*) method/function
-	// if (remove(name.c_str()) != 0) {
-	// 	perror("Error deleting the file");
-	// 	return true;
-	// }
+	 if (std::remove(name.c_str()) != 0) {
+	 	perror("Error deleting the file");
+	 	return true;
+	 }
 	return false;
 }
 
