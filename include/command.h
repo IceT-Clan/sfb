@@ -32,16 +32,27 @@ private:
 	map<string, COMMANDS>	cmd_map = {
 		{"", CMD_HELP},
 		{"help", CMD_HELP},
+		{"man", CMD_HELP},
+		{"manual", CMD_HELP},
 		{"start", CMD_START},
 		{"cp", CMD_COPY},
+		{"copy", CMD_COPY},
 		{"mv", CMD_MOVE},
+		{"move", CMD_MOVE},
 		{"ls", CMD_LS},
+		{"list", CMD_LS},
 		{"la", CMD_LA},
+		{"listall", CMD_LA},
 		{"cd", CMD_CD},
+		{"changedirectory", CMD_CD},
 		{"pwd", CMD_PWD},
+		{"printworkingdirectory", CMD_PWD},
 		{"mkdir", CMD_MKDIR},
+		{"makedirectory", CMD_MKDIR},
 		{"touch", CMD_TOUCH},
-		{"rm", CMD_RM}
+		{"create", CMD_TOUCH},
+		{"rm", CMD_RM},
+		{"remove", CMD_RM},
 	};
 public:
 	Command(int argc, char** argv);

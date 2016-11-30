@@ -34,10 +34,13 @@ class Network
 				
 		DATA_PACKET* recv();
 
-		bool		send(const REQ_PACKET &pkt );
+		template <class temp>
+		bool		send(const temp &pkt);
+
+		bool		send(REQ_PACKET pkt);
 		bool		send(const INFO_PACKET &pkt);
 		bool		send(const CONF_PACKET &pkt);
-		bool		send(const DATA_PACKET &pkt);
+		bool		send(DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */
