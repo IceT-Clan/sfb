@@ -156,7 +156,7 @@ bool Command::exec() {
 bool Command::print_help() {
 	cout << endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
-		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm [-rf] <path>]" << endl <<
+		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm <path>]" << endl <<
 		"Options:" << endl <<
 		"help   | help                      Print this help" << endl <<
 		"start  | start                     Start background deamon to establish a connection" << endl <<
@@ -232,7 +232,7 @@ bool Command::copy() {
 	copy.path1 =		argv[3];
 
 	//send packet
-	net->send(&copy);
+	net->send(copy);
 
 	net->recv();
 
@@ -241,10 +241,6 @@ bool Command::copy() {
 }
 
 bool Command::move() {
-	if (argc != 4) {
-		// Invalid argument count
-		return false;
-	}
 	//Paths
 	string sourcePath(argv[2]);
 	string targetPath(argv[3]);
@@ -301,7 +297,7 @@ bool Command::list() {
 					break;
 
 				case DT_DIR:
-					//Set font color to blue
+					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
 					cout << ent->d_name << "/ ";
 					//Reset font color
@@ -351,7 +347,7 @@ bool Command::listall() {
 
 				case DT_DIR:
 					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
-					//Set font color to blue
+					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
 					cout << ent->d_name << "/" << endl;
 					//Reset font color
@@ -395,7 +391,7 @@ bool Command::changedirectory() {
 	changedirectory.path0 =			argv[2];
 
 	//send packet
-	net->send(&changedirectory);
+	net->send(changedirectory);
 
 	net->recv();
 
@@ -410,7 +406,7 @@ bool Command::printworkingdirectory() {
 	pwd.cmd = CMD_PWD;
 
 	//send packet
-	net->send(&pwd);
+	net->send(pwd);
 
 	net->recv();
 	return true;
@@ -450,23 +446,10 @@ bool Command::remove() {
 	string command, option;
 
 	if (argv[2][0] == ':') {
-		if (argv[2][0] == '-rf' || argv[2][0] == '-rF') {
-			string option = argv[2] + 1;
-#ifdef _WIN32
-			command = "rmdir" + option;
-#else
-			if (argv[2][0] == '-r') {
-				command = "rm -r " + option;
-			}
-			 command = "rm -rf " + option;
-#endif
-			system((const char*)command.c_str());
-		}
-		option = argv[2] + 1;
 #ifdef _WIN32
 		 command = "del " + option;
 #else
-		 command = "rm " + option;
+		 command = "rm -rf" + option;
 #endif
 		system((const char*)command.c_str());
 	}
@@ -525,29 +508,29 @@ bool Command::startInBackground(string port, bool hideConsole) {
 bool Command::startInBackground(string port, bool hideConsole) {
 	char* programPath = "/sfb.exe";
 
-	pid_t pid = fork(); /* Create a child process */
+	pid_t pid = fork(); // Create a child process
 
 	switch (pid) {
-	case -1: /* Error */
-		std::cerr << "Uh-Oh! fork() failed.\n";
+	case -1: // Error
+		cerr << "Uh-Oh! fork() failed.\n";
 		exit(1);
-	case 0: /* Child process */
-		execl(programPath, NULL); /* Execute the program */
-		std::cerr << "Uh-Oh! execl() failed!"; /* execl doesn't return unless there's an error */
+	case 0: // Child process
+		execl(programPath, NULL); // Execute the program
+		cerr << "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
 		exit(1);
-	default: /* Parent process */
-		std::cout << "Process created with pid " << pid << "\n";
+	default: // Parent process
+		cout << "Process created with pid " << pid << "\n";
 		int status;
 
 		while (!WIFEXITED(status)) {
 #ifdef _WIN32
-			waitpid(pid, status, 0); /* Wait for the process to complete */
+			waitpid(pid, status, 0); // Wait for the process to complete
 #else
 			// TODO: Get it working not only on windows only every time you write code...
 #endif
 		}
 
-		std::cout << "Process exited with " << WEXITSTATUS(status) << "\n";
+		cout << "Process exited with " << WEXITSTATUS(status) << "\n";
 
 		return 0;
 	}

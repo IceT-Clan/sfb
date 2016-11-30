@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include "sfb.h"
 #include "serial/serial.h"
 
@@ -20,24 +22,44 @@ class Network
 		//vector<uint8_t byte;
 		string			filename;
 
-		DATA_PACKET		anspacket;
+		REQ_PACKET		requestPacket;
+		DATA_PACKET		dataPacket;
+		CONF_PACKET		confPacket;
+		INFO_PACKET		infoPacket;
+		bool			requestPacketAvailable;
+		bool			dataPacketAvailable;
+		bool			confPacketAvailable;
+		bool			infoPacketAvailable;
+
+		thread*			receive;
+		mutex			sec;
 	public:
 		Network();
 		~Network();
 
-		bool		readfileinfos(string path);
+		bool			readfileinfos(string path);
 
-		bool		init(string port);
-		bool		send(REQ_PACKET* req);
+		bool			init(string port);
+		bool			send(REQ_PACKET* req);
 
-		string getfilename(string path);
+		string			getfilename(string path);
 				
-		DATA_PACKET* recv();
+		bool			recv();
 
-		bool		send(const REQ_PACKET &pkt );
-		bool		send(const INFO_PACKET &pkt);
-		bool		send(const CONF_PACKET &pkt);
-		bool		send(const DATA_PACKET &pkt);
+		REQ_PACKET		getrequestpacket();
+		DATA_PACKET		getdatapacket();
+		CONF_PACKET		getconfpacket();
+		INFO_PACKET		getinfopacket();
+
+		bool			getrequestPacketAvailable;
+		bool			getdataPacketAvailable;
+		bool			getconfPacketAvailable;
+		bool			getinfoPacketAvailable;
+
+		bool			send(const REQ_PACKET &pkt );
+		bool			send(const INFO_PACKET &pkt);
+		bool			send(const CONF_PACKET &pkt);
+		bool			send(const DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */

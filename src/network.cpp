@@ -5,9 +5,13 @@
 
 Network::Network() {
 	serial = new Serial();
+	receive = new thread(bind(this, &Network::recv));
 }
 
 Network::~Network() {
+	receive->join();
+	delete receive;
+	delete serial;
 }
 
 string Network::getfilename(string path) {
@@ -53,20 +57,116 @@ bool Network::send(REQ_PACKET* req) {
 	return true;
 }
 
-DATA_PACKET* Network::recv() {
-	return NULL;
+bool Network::recv() {
+	vector <uint8_t> buffer;
+	serial->read(buffer, 1);
+	switch (buffer[0]) {
+	case REQUEST: {
+		buffer.clear();
+		serial->read(buffer, sizeof(COMMANDS));
+		REQ_PACKET packet;
+		packet.cmd = *reinterpret_cast <COMMANDS*> (buffer[0]);
+		packet.path0 = serial->readline();
+		packet.path1 = serial->readline();
+		packet.path0 = packet.path0.erase(packet.path0.length() - 1);
+		packet.path1 = packet.path1.erase(packet.path1.length() - 1);
+		lock_guard<mutex> lock(sec);
+		requestPacket = packet;
+		requestPacketAvailable = true;
+	}
+		break;
+	case INFO: {
+		buffer.clear();
+		serial->read(buffer, sizeof(size_t));
+		INFO_PACKET packet;
+		packet.bytesnr = *reinterpret_cast <size_t*> (buffer[0]);
+		lock_guard<mutex> lock(sec);
+		infoPacket = packet;
+		infoPacketAvailable = true;
+	}
+		break;
+	case CONF: {
+		buffer.clear();
+		serial->read(buffer, sizeof(bool));
+		CONF_PACKET packet;
+		packet.confirmation = *reinterpret_cast <bool*> (buffer[0]);
+		lock_guard<mutex> lock(sec);
+		confPacket = packet;
+		confPacketAvailable = true;
+	}
+		break;
+	case DATA: {
+		buffer.clear();
+		serial->read(buffer, 252);
+		DATA_PACKET packet;
+		memcpy(packet.bytes, &buffer[0], 252);
+		buffer.clear();
+		serial->read(buffer, sizeof(uint32_t));
+		packet.checksum = *reinterpret_cast <uint32_t*> (buffer[0]);
+		lock_guard<mutex> lock(sec);
+		dataPacket = packet;
+		dataPacketAvailable = true;
+	}
+		break;
+	default:
+		cerr << "An error occured!" << endl;
+		break;
+	}
+	return true;
 }
 
-bool		Network::send(const REQ_PACKET &pkt) {
-
-}
-bool		Network::send(const INFO_PACKET &pkt) {
-
-}
-bool		Network::send(const CONF_PACKET &pkt) {
-
-}
-bool		Network::send(const DATA_PACKET &pkt) {
+bool Network::send(const REQ_PACKET &pkt) {
 
 }
 
+bool Network::send(const INFO_PACKET &pkt) {
+
+}
+
+bool Network::send(const CONF_PACKET &pkt) {
+
+}
+
+bool Network::send(const DATA_PACKET &pkt) {
+
+}
+
+REQ_PACKET Network::getrequestpacket() {
+	while (!getrequestPacketAvailable()) { _sleep(10); }
+	return requestPacket;
+}
+
+INFO_PACKET Network::getinfopacket() {
+	while (!getinfoPacketAvailable()) { _sleep(10); }
+	return infoPacket;
+}
+
+CONF_PACKET Network::getconfpacket() {
+	while (!getconfPacketAvailable()) { _sleep(10); }
+	return confPacket;
+}
+
+DATA_PACKET Network::getdatapacket() {
+	while (!getdataPacketAvailable()) { _sleep(10); }
+	return dataPacket;
+}
+
+bool Network::getrequestPacketAvailable() {
+	lock_guard<mutex> lock(sec);
+	return requestPacketAvailable;
+}
+
+bool Network::getdataPacketAvailable() {
+	lock_guard<mutex> lock(sec);
+	return dataPacketAvailable;
+}
+
+bool Network::getconfPacketAvailable() {
+	lock_guard<mutex> lock(sec);
+	return confPacketAvailable;
+}
+
+bool Network::getinfoPacketAvailable() {
+	lock_guard<mutex> lock(sec);
+	return infoPacketAvailable;
+}
