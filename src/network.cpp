@@ -5,7 +5,7 @@
 
 Network::Network() {
 	serial = new Serial();
-	receive = new thread(bind(this, &Network::recv));
+	receive = new thread(bind(&Network::recv, this));
 }
 
 Network::~Network() {
@@ -40,6 +40,11 @@ bool Network::readfileinfos(string path) {
 	return true;
 }
 
+//using boost::hash_combine
+template <class boost>
+inline void hash_combine(size_t& seed, boost const& v) {
+	seed ^= hash<boost>()(v) + 0x9e3779b9 + (seed >> 2);
+}
 
 bool Network::init(string port) {
 	serial->setPort(port);
@@ -115,20 +120,17 @@ bool Network::recv() {
 	return true;
 }
 
-bool Network::send(const REQ_PACKET &pkt) {
+// SEND REQUEST
+bool Network::send(REQ_PACKET pkt) {
+	send(PACKETS::REQUEST);
 
-}
+	pkt.path0 += "\n";
+	pkt.path1 += "\n";
 
-bool Network::send(const INFO_PACKET &pkt) {
-
-}
-
-bool Network::send(const CONF_PACKET &pkt) {
-
-}
-
-bool Network::send(const DATA_PACKET &pkt) {
-
+	send(pkt.cmd);
+	serial->write(pkt.path0);
+	serial->write(pkt.path1);
+	return true;
 }
 
 REQ_PACKET Network::getrequestpacket() {
@@ -169,4 +171,38 @@ bool Network::getconfPacketAvailable() {
 bool Network::getinfoPacketAvailable() {
 	lock_guard<mutex> lock(sec);
 	return infoPacketAvailable;
+}
+
+// SEND INFO
+bool Network::send(const INFO_PACKET &pkt) {
+	send(PACKETS::INFO);
+	send(pkt);
+	return true;
+}
+
+// SEND CONF
+bool Network::send(const CONF_PACKET &pkt) {
+	send(PACKETS::CONF);
+	send(pkt);
+	return true;
+}
+
+// SEND DATA
+bool Network::send(DATA_PACKET &pkt) {
+	send(PACKETS::DATA);
+	// hashcode
+	size_t seed = sizeof(pkt.bytes);
+	for (const uint8_t& b : pkt.bytes) {
+		hash_combine(seed, b);
+	}
+
+	pkt.checksum = seed;
+	send(pkt);
+	return true;
+}
+
+template <class temp>
+bool Network::send(const temp &pkt) {
+	serial->write(reinterpret_cast<const uint8_t*>(&(pkt)), sizeof(pkt));
+	return true;
 }
