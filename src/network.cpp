@@ -63,48 +63,54 @@ DATA_PACKET* Network::recv() {
 }
 
 // SEND REQUEST
-bool Network::send(REQ_PACKET pkt) {
-	send(PACKETS::REQUEST);
+bool Network::sendpkt(REQ_PACKET &pkt) {
+	sendraw(PACKETS::REQUEST);
 
 	pkt.path0 += "\n";
 	pkt.path1 += "\n";
 
-	send(pkt.cmd);
+	sendraw(pkt.cmd);
 	serial->write(pkt.path0);
 	serial->write(pkt.path1);
+	cout << "SENT" << endl;
 	return true;
 }
 
 // SEND INFO
-bool Network::send(const INFO_PACKET &pkt) {
-	send(PACKETS::INFO);
-	send(pkt);
+bool Network::sendpkt(INFO_PACKET &pkt) {
+	sendraw(PACKETS::INFO);
+	sendraw(pkt);
+	cout << "SENT" << endl;
 	return true;
 }
 
 // SEND CONF
-bool Network::send(const CONF_PACKET &pkt) {
-	send(PACKETS::CONF);
-	send(pkt);
+bool Network::sendpkt(CONF_PACKET &pkt) {
+	sendraw(PACKETS::CONF);
+	sendraw(pkt);
+	cout << "SENT" << endl;
 	return true;
 }
 
 // SEND DATA
-bool Network::send(DATA_PACKET &pkt) {
-	send(PACKETS::DATA);
-	// hashcode
+bool Network::sendpkt(DATA_PACKET &pkt) {
+	sendraw(PACKETS::DATA);
+	 //hashcode
+
 	size_t seed = sizeof(pkt.bytes);
 	for (const uint8_t& b : pkt.bytes) {
 		hash_combine(seed, b);
 	}
 
 	pkt.checksum = seed;
-	send(pkt);
+	serial->write(pkt.bytes, 252);
+	sendraw(pkt.checksum);
+	cout << "SENT" <<endl;
 	return true;
 }
 
 template <class temp>
-bool Network::send(const temp &pkt) {
+bool Network::sendraw(const temp &pkt) {
 	serial->write(reinterpret_cast<const uint8_t*>(&(pkt)), sizeof(pkt));
 	return true;
 }

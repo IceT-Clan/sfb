@@ -24,7 +24,7 @@ enum COMMANDS {
 	CMD_TOUCH,
 	CMD_RM,
 };
-enum PACKETS {
+enum PACKETS : uint8_t {
 	REQUEST,
 	INFO,
 	CONF,
