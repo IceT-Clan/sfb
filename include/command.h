@@ -38,6 +38,7 @@ private:
 		{"cp", CMD_COPY},
 		{"copy", CMD_COPY},
 		{"mv", CMD_MOVE},
+		{ "mov", CMD_MOVE },
 		{"move", CMD_MOVE},
 		{"ls", CMD_LS},
 		{"list", CMD_LS},
