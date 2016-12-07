@@ -1,7 +1,4 @@
 #include "network.h"
-#include <iostream>
-#include <fstream>
-#include <string>
 
 Network::Network() {
 	serial = new Serial();
@@ -15,9 +12,7 @@ Network::~Network() {
 }
 
 string Network::getfilename(string path) {
-	///
-	///Extracts The Filename
-	///
+	// Extracts The Filename
 	int i = path.find_last_of('\\');
 	if (i != string::npos) {
 		path = path.substr(i + 1);
@@ -27,33 +22,44 @@ string Network::getfilename(string path) {
 }
 
 bool Network::readfileinfos(string path) {
-	///
-	///Get File Name
-	///
+	// Get File Name
 	filename = getfilename(path);
-	///
-	///Save binary data in 8bit vector
-	///
-	ifstream input(path, std::ios::binary);
 
+	// Save binary data in 8bit vector
+	ifstream input(path, std::ios::binary);
 
 	return true;
 }
 
-//using boost::hash_combine
+// using boost::hash_combine
 template <class boost>
 inline void hash_combine(size_t& seed, boost const& v) {
 	seed ^= hash<boost>()(v) + 0x9e3779b9 + (seed >> 2);
 }
 
-bool Network::init(string port) {
+bool Network::init(string port /*= ""*/) {
+	// Do we have opened a port before?
+	if (serial->isOpen()) {
+		serial->close();
+	}
+
+	// Set default port if none was given
+	if (port.empty()) {
+#ifdef _WIN32
+		port = "COM1";
+#else
+		port = "/dev/ttyS0";
+#endif
+	}
+
 	serial->setPort(port);
 
 	// Check if port is open and return the result
 	serial->open();
 
 	// Set DTR to let our partner know we are there
-	serial->setDTR();
+	// (Currently not used)
+	// serial->setDTR();
 
 	return serial->isOpen();
 }
@@ -61,8 +67,11 @@ bool Network::init(string port) {
 bool Network::recv() {
 	cout << "Background process started..." << endl;
 	while (true) {
-		vector <uint8_t> buffer;
-		serial->read(buffer, 1);
+		vector<uint8_t> buffer;
+
+		// Wait until we received something
+		while (!serial->read(buffer, 1)) {};
+
 		cout << "Received something" << endl;
 		switch (buffer[0]) {
 		case REQUEST: {
@@ -78,8 +87,7 @@ bool Network::recv() {
 			requestPacket = packet;
 			cout << "REQ received" << endl << "  Path0: " << packet.path0 << endl << "  Path1: " << packet.path1 << endl;
 			requestPacketAvailable = true;
-		}
-					  break;
+		} break;
 		case INFO: {
 			buffer.clear();
 			serial->read(buffer, sizeof(size_t));
@@ -89,8 +97,7 @@ bool Network::recv() {
 			infoPacket = packet;
 			cout << "INFO received" << endl << "  Bytesnr: " << packet.bytesnr << endl;
 			infoPacketAvailable = true;
-		}
-				   break;
+		} break;
 		case CONF: {
 			buffer.clear();
 			serial->read(buffer, sizeof(bool));
@@ -100,8 +107,7 @@ bool Network::recv() {
 			confPacket = packet;
 			cout << "CONF received" << endl << "  Confirmation: " << packet.confirmation << endl;
 			confPacketAvailable = true;
-		}
-				   break;
+		} break;
 		case DATA: {
 			buffer.clear();
 			serial->read(buffer, 252);
@@ -114,8 +120,7 @@ bool Network::recv() {
 			dataPacket = packet;
 			cout << "DATA received" << endl << "  Checksum: " << packet.checksum << endl;
 			dataPacketAvailable = true;
-		}
-				   break;
+		} break;
 		default:
 			cerr << "An error occured!" << endl;
 			break;
@@ -124,7 +129,7 @@ bool Network::recv() {
 	return true;
 }
 
-// SEND REQUEST
+// Send REQ
 bool Network::sendpkt(REQ_PACKET &pkt) {
 	sendraw(PACKETS::REQUEST);
 
@@ -139,28 +144,39 @@ bool Network::sendpkt(REQ_PACKET &pkt) {
 }
 
 REQ_PACKET Network::getrequestpacket() {
-	while (!getrequestPacketAvailable()) { _sleep(10); }
 	lock_guard<mutex> lock(sec);
 	requestPacketAvailable = false;
 	return requestPacket;
 }
 
 INFO_PACKET Network::getinfopacket() {
-	while (!getinfoPacketAvailable()) { _sleep(10); }
+#ifdef _WIN32
+	while (!getrequestPacketAvailable()) { _sleep(10); }
+#else
+	while (!getrequestPacketAvailable()) { sleep(10); }
+#endif
 	lock_guard<mutex> lock(sec);
 	infoPacketAvailable = false;
 	return infoPacket;
 }
 
 CONF_PACKET Network::getconfpacket() {
-	while (!getconfPacketAvailable()) { _sleep(10); }
+#ifdef _WIN32
+	while (!getrequestPacketAvailable()) { _sleep(10); }
+#else
+	while (!getrequestPacketAvailable()) { sleep(10); }
+#endif
 	lock_guard<mutex> lock(sec);
 	confPacketAvailable = false;
 	return confPacket;
 }
 
 DATA_PACKET Network::getdatapacket() {
-	while (!getdataPacketAvailable()) { _sleep(10); }
+#ifdef _WIN32
+	while (!getrequestPacketAvailable()) { _sleep(10); }
+#else
+	while (!getrequestPacketAvailable()) { sleep(10); }
+#endif
 	lock_guard<mutex> lock(sec);
 	dataPacketAvailable = false;
 	return dataPacket;

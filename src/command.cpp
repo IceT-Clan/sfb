@@ -1,20 +1,23 @@
 #include "command.h"
-#include <fstream>
-#include <errno.h>
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 
 Command::Command(int argc, char** argv) {
+	string port;
+
 	this->argc = argc;
 	this->argv = argv;
+
+	// Set up network class
 	this->net = new Network();
-	this->net->init("COM1");
+
+	// Check if default port is available
+	if (!net->init()) {
+		cerr << "Failed to init network" << endl;
+	}
+
 }
 
 Command::~Command() {
+	delete net;
 }
 
 bool Command::read() {
@@ -199,16 +202,15 @@ bool Command::start() {
 			port = arg;
 		}
 	}
-	if (port.empty()) {
-#ifdef _WIN32
-		port = "COM1";
-#else
-		port = "/dev/ttyS0";
-#endif
+
+	if (!port.empty()) {
+		net->init(port);
 	}
+
 	if (background) {
 		return startInBackground(port, hideConsole);
 	}
+
 	if (!background && hideConsole) {
 #ifdef _WIN32
 		FreeConsole();
@@ -216,19 +218,11 @@ bool Command::start() {
 		// TODO
 #endif
 	}
-	// Set up network class
-	net = new Network();
-
-	// Check if port is available and return result
-	if (!net->init(port)) {
-		cerr << "Failed to init network" << endl;
-		system("PAUSE");
-		return false;
-	}
 
 	cout << "Start listening for commands..." << endl;
 	while (true) {
 		bool result = false;
+		while (!net->getrequestPacketAvailable()) {}
 		REQ_PACKET pkt =  net->getrequestpacket();
 		switch (pkt.cmd) {
 		case CMD_MOVE:
@@ -553,7 +547,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 * http://www.cplusplus.com/forum/lounge/17684/
 */
 bool Command::startInBackground(string port, bool hideConsole) {
-	char* programPath = "/sfb.exe";
+	string programPath = "/sfb.exe";
 
 	pid_t pid = fork(); // Create a child process
 
@@ -562,7 +556,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 		cerr << "Uh-Oh! fork() failed.\n";
 		exit(1);
 	case 0: // Child process
-		execl(programPath, NULL); // Execute the program
+		execl(programPath.c_str(), NULL); // Execute the program
 		cerr << "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
 		exit(1);
 	default: // Parent process

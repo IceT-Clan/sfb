@@ -7,8 +7,13 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <iostream>
+#include <fstream>
 #include "sfb.h"
 #include "serial/serial.h"
+#ifndef _WIN32
+	#include <unistd.h>
+#endif
 
 using namespace std;
 using namespace serial;
@@ -38,12 +43,9 @@ class Network
 		~Network();
 
 		bool			readfileinfos(string path);
-
-		bool			init(string port);
-
-		string			getfilename(string path);
-				
+		bool			init(string port = "");
 		bool			recv();
+		string			getfilename(string path);
 
 		REQ_PACKET		getrequestpacket();
 		DATA_PACKET		getdatapacket();

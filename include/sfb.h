@@ -2,6 +2,7 @@
 #ifndef SFB_H
 #define SFB_H
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -25,10 +26,10 @@ enum COMMANDS {
 	CMD_RM,
 };
 enum PACKETS : uint8_t {
-	REQUEST,
-	INFO,
-	CONF,
-	DATA
+	REQUEST = 0,
+	INFO = 1,
+	CONF = 2,
+	DATA = 3
 };
 
 // Request packet structure

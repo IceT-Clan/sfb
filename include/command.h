@@ -8,6 +8,7 @@
 #include "serial/serial.h"
 #include "network.h"
 #ifdef _WIN32
+	#include <Windows.h>
 	#include "dirent.h"
 	#include "direct.h"
 #else

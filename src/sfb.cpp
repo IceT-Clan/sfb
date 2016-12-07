@@ -1,14 +1,7 @@
-#include <iostream>
-#include <string>
-#include <Windows.h>
 #include "sfb.h"
 #include "command.h"
 
-using namespace std;
-
 int main(int argc, char** argv) {
-
-
 	Command cmd(argc, argv);
 	
 	/*cout << "PRESS A FANCY KEY TO SEND THE INFOPACKET\n";
