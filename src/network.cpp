@@ -58,10 +58,6 @@ bool Network::init(string port) {
 	return serial->isOpen();
 }
 
-bool Network::send(REQ_PACKET* req) {
-	return true;
-}
-
 bool Network::recv() {
 	cout << "Background process started..." << endl;
 	while (true) {
@@ -144,21 +140,29 @@ bool Network::sendpkt(REQ_PACKET &pkt) {
 
 REQ_PACKET Network::getrequestpacket() {
 	while (!getrequestPacketAvailable()) { _sleep(10); }
+	lock_guard<mutex> lock(sec);
+	requestPacketAvailable = false;
 	return requestPacket;
 }
 
 INFO_PACKET Network::getinfopacket() {
 	while (!getinfoPacketAvailable()) { _sleep(10); }
+	lock_guard<mutex> lock(sec);
+	infoPacketAvailable = false;
 	return infoPacket;
 }
 
 CONF_PACKET Network::getconfpacket() {
 	while (!getconfPacketAvailable()) { _sleep(10); }
+	lock_guard<mutex> lock(sec);
+	confPacketAvailable = false;
 	return confPacket;
 }
 
 DATA_PACKET Network::getdatapacket() {
 	while (!getdataPacketAvailable()) { _sleep(10); }
+	lock_guard<mutex> lock(sec);
+	dataPacketAvailable = false;
 	return dataPacket;
 }
 

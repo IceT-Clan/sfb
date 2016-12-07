@@ -26,10 +26,10 @@ class Network
 		DATA_PACKET		dataPacket;
 		CONF_PACKET		confPacket;
 		INFO_PACKET		infoPacket;
-		bool			requestPacketAvailable;
-		bool			dataPacketAvailable;
-		bool			confPacketAvailable;
-		bool			infoPacketAvailable;
+		bool			requestPacketAvailable = false;
+		bool			dataPacketAvailable = false;
+		bool			confPacketAvailable = false;
+		bool			infoPacketAvailable = false;
 
 		thread*			receive;
 		mutex			sec;
@@ -40,7 +40,6 @@ class Network
 		bool			readfileinfos(string path);
 
 		bool			init(string port);
-		bool			send(REQ_PACKET* req);
 
 		string			getfilename(string path);
 				

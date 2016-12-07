@@ -10,6 +10,8 @@
 Command::Command(int argc, char** argv) {
 	this->argc = argc;
 	this->argv = argv;
+	this->net = new Network();
+	this->net->init("COM1");
 }
 
 Command::~Command() {
@@ -224,6 +226,7 @@ bool Command::start() {
 		return false;
 	}
 
+	cout << "Start listening for commands..." << endl;
 	while (true) {
 		bool result = false;
 		REQ_PACKET pkt =  net->getrequestpacket();
@@ -249,7 +252,7 @@ bool Command::copy() {
 	copy.path1 =		argv[3];
 
 	//send packet
-	net->send(copy);
+	net->sendpkt(copy);
 
 	net->recv();
 
@@ -279,6 +282,7 @@ bool Command::move() {
 		REQ_PACKET pkt { CMD_MOVE, "", "" };
 		if (!isSourceHere) pkt.path0;
 		if (!isTargetHere) pkt.path1;
+		net->sendpkt(pkt);
 		return true;
 	}
 
@@ -434,7 +438,7 @@ bool Command::changedirectory() {
 	changedirectory.path0 =			argv[2];
 
 	//send packet
-	net->send(changedirectory);
+	net->sendpkt(changedirectory);
 
 	net->recv();
 
@@ -449,7 +453,7 @@ bool Command::printworkingdirectory() {
 	pwd.cmd = CMD_PWD;
 
 	//send packet
-	net->send(pwd);
+	net->sendpkt(pwd);
 
 	net->recv();
 	return true;
