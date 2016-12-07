@@ -63,59 +63,67 @@ bool Network::send(REQ_PACKET* req) {
 }
 
 bool Network::recv() {
-	vector <uint8_t> buffer;
-	serial->read(buffer, 1);
-	switch (buffer[0]) {
-	case REQUEST: {
-		buffer.clear();
-		serial->read(buffer, sizeof(COMMANDS));
-		REQ_PACKET packet;
-		packet.cmd = *reinterpret_cast <COMMANDS*> (buffer[0]);
-		packet.path0 = serial->readline();
-		packet.path1 = serial->readline();
-		packet.path0 = packet.path0.erase(packet.path0.length() - 1);
-		packet.path1 = packet.path1.erase(packet.path1.length() - 1);
-		lock_guard<mutex> lock(sec);
-		requestPacket = packet;
-		requestPacketAvailable = true;
-	}
-		break;
-	case INFO: {
-		buffer.clear();
-		serial->read(buffer, sizeof(size_t));
-		INFO_PACKET packet;
-		packet.bytesnr = *reinterpret_cast <size_t*> (buffer[0]);
-		lock_guard<mutex> lock(sec);
-		infoPacket = packet;
-		infoPacketAvailable = true;
-	}
-		break;
-	case CONF: {
-		buffer.clear();
-		serial->read(buffer, sizeof(bool));
-		CONF_PACKET packet;
-		packet.confirmation = *reinterpret_cast <bool*> (buffer[0]);
-		lock_guard<mutex> lock(sec);
-		confPacket = packet;
-		confPacketAvailable = true;
-	}
-		break;
-	case DATA: {
-		buffer.clear();
-		serial->read(buffer, 252);
-		DATA_PACKET packet;
-		memcpy(packet.bytes, &buffer[0], 252);
-		buffer.clear();
-		serial->read(buffer, sizeof(uint32_t));
-		packet.checksum = *reinterpret_cast <uint32_t*> (buffer[0]);
-		lock_guard<mutex> lock(sec);
-		dataPacket = packet;
-		dataPacketAvailable = true;
-	}
-		break;
-	default:
-		cerr << "An error occured!" << endl;
-		break;
+	cout << "Background process started..." << endl;
+	while (true) {
+		vector <uint8_t> buffer;
+		serial->read(buffer, 1);
+		cout << "Received something" << endl;
+		switch (buffer[0]) {
+		case REQUEST: {
+			buffer.clear();
+			serial->read(buffer, sizeof(COMMANDS));
+			REQ_PACKET packet;
+			packet.cmd = *reinterpret_cast <COMMANDS*> (&buffer[0]);
+			packet.path0 = serial->readline();
+			packet.path1 = serial->readline();
+			packet.path0 = packet.path0.erase(packet.path0.length() - 1);
+			packet.path1 = packet.path1.erase(packet.path1.length() - 1);
+			lock_guard<mutex> lock(sec);
+			requestPacket = packet;
+			cout << "REQ received" << endl << "  Path0: " << packet.path0 << endl << "  Path1: " << packet.path1 << endl;
+			requestPacketAvailable = true;
+		}
+					  break;
+		case INFO: {
+			buffer.clear();
+			serial->read(buffer, sizeof(size_t));
+			INFO_PACKET packet;
+			packet.bytesnr = *reinterpret_cast <size_t*> (&buffer[0]);
+			lock_guard<mutex> lock(sec);
+			infoPacket = packet;
+			cout << "INFO received" << endl << "  Bytesnr: " << packet.bytesnr << endl;
+			infoPacketAvailable = true;
+		}
+				   break;
+		case CONF: {
+			buffer.clear();
+			serial->read(buffer, sizeof(bool));
+			CONF_PACKET packet;
+			packet.confirmation = *reinterpret_cast <bool*> (&buffer[0]);
+			lock_guard<mutex> lock(sec);
+			confPacket = packet;
+			cout << "CONF received" << endl << "  Confirmation: " << packet.confirmation << endl;
+			confPacketAvailable = true;
+		}
+				   break;
+		case DATA: {
+			buffer.clear();
+			serial->read(buffer, 252);
+			DATA_PACKET packet;
+			memcpy(packet.bytes, &buffer[0], 252);
+			buffer.clear();
+			serial->read(buffer, sizeof(uint32_t));
+			packet.checksum = *reinterpret_cast <uint32_t*> (&buffer[0]);
+			lock_guard<mutex> lock(sec);
+			dataPacket = packet;
+			cout << "DATA received" << endl << "  Checksum: " << packet.checksum << endl;
+			dataPacketAvailable = true;
+		}
+				   break;
+		default:
+			cerr << "An error occured!" << endl;
+			break;
+		}
 	}
 	return true;
 }

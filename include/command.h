@@ -66,6 +66,7 @@ private:
 	bool	start();
 	bool	copy();
 	bool	move();
+	bool	move_b(REQ_PACKET& pkt);
 	bool	list();
 	bool	listall();
 	bool	changedirectory();

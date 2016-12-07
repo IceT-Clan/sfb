@@ -214,13 +214,30 @@ bool Command::start() {
 		// TODO
 #endif
 	}
-
-	while (true);
 	// Set up network class
 	net = new Network();
 
 	// Check if port is available and return result
-	return net->init(port);
+	if (!net->init(port)) {
+		cerr << "Failed to init network" << endl;
+		system("PAUSE");
+		return false;
+	}
+
+	while (true) {
+		bool result = false;
+		REQ_PACKET pkt =  net->getrequestpacket();
+		switch (pkt.cmd) {
+		case CMD_MOVE:
+			result = move_b(pkt);
+			break;
+		default:
+			cerr << "Unknown command!" << endl;
+			break;
+		}
+		if(result)	cout << "Executed successfully." << endl;
+		else		cout << "Could not execute." << endl;
+	}
 }
 
 bool Command::copy() {
@@ -245,17 +262,24 @@ bool Command::move() {
 	string sourcePath(argv[2]);
 	string targetPath(argv[3]);
 
-	bool isSourceHere = true;
-	bool isTargetHere = true;
+	bool isSourceHere = false;
+	bool isTargetHere = false;
 
 	//Test for and remove ':'
 	if (sourcePath[0] == ':') {
-		isSourceHere = false;
+		isSourceHere = true;
 		sourcePath.erase(0, 1);
 	}
 	if (targetPath[0] == ':') {
-		isTargetHere = false;
+		isTargetHere = true;
 		targetPath.erase(0, 1);
+	}
+
+	if (!(isSourceHere && isTargetHere)) {
+		REQ_PACKET pkt { CMD_MOVE, "", "" };
+		if (!isSourceHere) pkt.path0;
+		if (!isTargetHere) pkt.path1;
+		return true;
 	}
 
 	// Test target file
@@ -270,11 +294,30 @@ bool Command::move() {
 	if (!source.is_open()) {
 		cerr << "Error opening source: " << strerror(errno) << endl;
 	}
-	target.open(argv[2], ios_base::out | ios_base::binary);
+	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
 		cerr << "Error opening target: " << strerror(errno) << endl;
 	}
 	return true;
+}
+
+bool Command::move_b(REQ_PACKET& pkt) {
+	if (pkt.path0 != "" && pkt.path1 != "") {
+		if (checkFile(pkt.path1, true)) return false;
+		ifstream source(pkt.path0, ios::binary | ios::in);
+		if (!source.is_open()) {
+			cerr << "Can't open source file!" << endl;
+		}
+		ofstream target(pkt.path1, ios::binary | ios::out);
+		if (!target.is_open()) {
+			cerr << "Can't open target file!" << endl;
+		}
+		while (source.eof()) {
+			uint8_t byte;
+			source >> byte;
+			target << byte;
+		}
+	}
 }
 
 bool Command::list() {
@@ -475,10 +518,10 @@ bool Command::checkFile(string name, bool askForOverride) {
 
 	// TODO: Fix it. This code does not compile (tested under linux)
 	//		 There is no remove(const char*) method/function
-	// if (remove(name.c_str()) != 0) {
-	// 	perror("Error deleting the file");
-	// 	return true;
-	// }
+	 if (std::remove(name.c_str()) != 0) {
+	 	perror("Error deleting the file");
+	 	return true;
+	 }
 	return false;
 }
 
