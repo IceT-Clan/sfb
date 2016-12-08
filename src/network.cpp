@@ -54,16 +54,6 @@ bool Network::init(string port /*= ""*/) {
 
 	serial->setPort(port);
 
-<<<<<<< HEAD
-	// Check if port is open and return the result
-	serial->open();
-
-	// Set DTR to let our partner know we are there
-	// (Currently not used)
-	// serial->setDTR();
-
-	return serial->isOpen();
-=======
 	// Check availability of serial port
 	serial->open();
 	if (!serial->isOpen()) {
@@ -77,7 +67,6 @@ bool Network::init(string port /*= ""*/) {
 	while (!serial->getCD()) {};
 
 	return true;
->>>>>>> f7e64dc223865b6806336c4b33b392f12f580be8
 }
 
 bool Network::recv() {
