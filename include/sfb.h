@@ -2,6 +2,7 @@
 #ifndef SFB_H
 #define SFB_H
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -24,11 +25,11 @@ enum COMMANDS {
 	CMD_TOUCH,
 	CMD_RM,
 };
-enum PACKETS {
-	REQUEST,
-	INFO,
-	CONF,
-	DATA
+enum PACKETS : uint8_t {
+	REQUEST = 0,
+	INFO = 1,
+	CONF = 2,
+	DATA = 3
 };
 
 // Request packet structure

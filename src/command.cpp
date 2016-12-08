@@ -1,18 +1,23 @@
 #include "command.h"
-#include <fstream>
-#include <errno.h>
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 
 Command::Command(int argc, char** argv) {
+	string port;
+
 	this->argc = argc;
 	this->argv = argv;
+
+	// Set up network class
+	this->net = new Network();
+
+	// Check if default port is available
+	if (!net->init()) {
+		cerr << "Failed to init network" << endl;
+	}
+
 }
 
 Command::~Command() {
+	delete net;
 }
 
 bool Command::read() {
@@ -156,7 +161,7 @@ bool Command::exec() {
 bool Command::print_help() {
 	cout << endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
-		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm [-rf] <path>]" << endl <<
+		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm <path>]" << endl <<
 		"Options:" << endl <<
 		"help   | help                      Print this help" << endl <<
 		"start  | start                     Start background deamon to establish a connection" << endl <<
@@ -197,16 +202,15 @@ bool Command::start() {
 			port = arg;
 		}
 	}
-	if (port.empty()) {
-#ifdef _WIN32
-		port = "COM1";
-#else
-		port = "/dev/ttyS0";
-#endif
+
+	if (!port.empty()) {
+		net->init(port);
 	}
+
 	if (background) {
 		return startInBackground(port, hideConsole);
 	}
+
 	if (!background && hideConsole) {
 #ifdef _WIN32
 		FreeConsole();
@@ -215,14 +219,22 @@ bool Command::start() {
 #endif
 	}
 
-	while (true);
-	// Set up network class
-	net = new Network();
-
-	// Check if port is available and return result
-	net->init(port);
-
-	return true;
+	cout << "Start listening for commands..." << endl;
+	while (true) {
+		bool result = false;
+		while (!net->getrequestPacketAvailable()) {}
+		REQ_PACKET pkt =  net->getrequestpacket();
+		switch (pkt.cmd) {
+		case CMD_MOVE:
+			result = move_b(pkt);
+			break;
+		default:
+			cerr << "Unknown command!" << endl;
+			break;
+		}
+		if(result)	cout << "Executed successfully." << endl;
+		else		cout << "Could not execute." << endl;
+	}
 }
 
 bool Command::copy() {
@@ -234,7 +246,7 @@ bool Command::copy() {
 	copy.path1 =		argv[3];
 
 	//send packet
-	net->send(&copy);
+	net->sendpkt(copy);
 
 	net->recv();
 
@@ -243,29 +255,33 @@ bool Command::copy() {
 }
 
 bool Command::move() {
-	if (argc != 4) {
-		// Invalid argument count
-		return false;
-	}
 	//Paths
 	string sourcePath(argv[2]);
 	string targetPath(argv[3]);
 
-	bool isSourceHere = true;
-	bool isTargetHere = true;
+	bool isSourceHere = false;
+	bool isTargetHere = false;
 
 	//Test for and remove ':'
 	if (sourcePath[0] == ':') {
-		isSourceHere = false;
+		isSourceHere = true;
 		sourcePath.erase(0, 1);
 	}
 	if (targetPath[0] == ':') {
-		isTargetHere = false;
+		isTargetHere = true;
 		targetPath.erase(0, 1);
 	}
 
+	if (!(isSourceHere && isTargetHere)) {
+		REQ_PACKET pkt { CMD_MOVE, "", "" };
+		if (!isSourceHere) pkt.path0;
+		if (!isTargetHere) pkt.path1;
+		net->sendpkt(pkt);
+		return true;
+	}
+
 	// Test target file
-	if (checkFile(argv[3], true)) return false;
+	if (checkFileExists(argv[3])) return false;
 
 	//files
 	ifstream source;
@@ -276,10 +292,36 @@ bool Command::move() {
 	if (!source.is_open()) {
 		cerr << "Error opening source: " << strerror(errno) << endl;
 	}
-	target.open(argv[2], ios_base::out | ios_base::binary);
+	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
 		cerr << "Error opening target: " << strerror(errno) << endl;
 	}
+	return true;
+}
+
+bool Command::move_b(REQ_PACKET& pkt) {
+	if (pkt.path0 != "" && pkt.path1 != "") {
+		ifstream source(pkt.path0, ios::binary | ios::in);
+		if (!source.is_open()) {
+			cerr << "Can't open source file!" << endl;
+			return false;
+		}
+		ofstream target(pkt.path1, ios::binary | ios::out | ios::trunc);
+		if (!target.is_open()) {
+			cerr << "Can't open target file!" << endl;
+			return false;
+		}
+
+		// Copy source to target
+		target << source.rdbuf();
+
+		// Remove source
+		if (remove(pkt.path0.c_str()) != 0) {
+			cerr << "Could not delete file(s)." << endl;
+			return true;
+		}
+	}
+
 	return true;
 }
 
@@ -303,7 +345,7 @@ bool Command::list() {
 					break;
 
 				case DT_DIR:
-					//Set font color to blue
+					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
 					cout << ent->d_name << "/ ";
 					//Reset font color
@@ -353,7 +395,7 @@ bool Command::listall() {
 
 				case DT_DIR:
 					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
-					//Set font color to blue
+					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
 					cout << ent->d_name << "/" << endl;
 					//Reset font color
@@ -397,7 +439,7 @@ bool Command::changedirectory() {
 	changedirectory.path0 =			argv[2];
 
 	//send packet
-	net->send(&changedirectory);
+	net->sendpkt(changedirectory);
 
 	net->recv();
 
@@ -412,7 +454,7 @@ bool Command::printworkingdirectory() {
 	pwd.cmd = CMD_PWD;
 
 	//send packet
-	net->send(&pwd);
+	net->sendpkt(pwd);
 
 	net->recv();
 	return true;
@@ -448,34 +490,21 @@ bool Command::makefile() {
 	return true;
 }
 
-bool Command::remove() {
+bool Command::removefile() {
 	string command, option;
 
 	if (argv[2][0] == ':') {
-		if (argv[2][0] == '-rf' || argv[2][0] == '-rF') {
-			string option = argv[2] + 1;
-#ifdef _WIN32
-			command = "rmdir" + option;
-#else
-			if (argv[2][0] == '-r') {
-				command = "rm -r " + option;
-			}
-			 command = "rm -rf " + option;
-#endif
-			system((const char*)command.c_str());
-		}
-		option = argv[2] + 1;
 #ifdef _WIN32
 		 command = "del " + option;
 #else
-		 command = "rm " + option;
+		 command = "rm -rf" + option;
 #endif
 		system((const char*)command.c_str());
 	}
 	return true;
 }
 
-bool Command::checkFile(string name, bool askForOverride) {
+bool Command::checkFileExists(string name) {
 	ifstream target;
 	target.open(argv[3], ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
@@ -485,19 +514,19 @@ bool Command::checkFile(string name, bool askForOverride) {
 		}
 	}
 	target.close();
-	cout << "File with the same name already exists! Do you want to override it? [y/N]" << endl;
-	string input;
-	cin >> input;
-	if (input.compare("y") != 0) {
-		return true;
+
+	vector<string> files;
+	list_files(&files, ".");
+	if(find(files.begin(), files.end(), name) == files.end()) {
+		// File already exists
+		cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
+		string input;
+		cin >> input;
+		if (input == "y" | input == "Y") {
+			return true;
+		}
 	}
 
-	// TODO: Fix it. This code does not compile (tested under linux)
-	//		 There is no remove(const char*) method/function
-	// if (remove(name.c_str()) != 0) {
-	// 	perror("Error deleting the file");
-	// 	return true;
-	// }
 	return false;
 }
 
@@ -525,33 +554,57 @@ bool Command::startInBackground(string port, bool hideConsole) {
 * http://www.cplusplus.com/forum/lounge/17684/
 */
 bool Command::startInBackground(string port, bool hideConsole) {
-	char* programPath = "/sfb.exe";
+	string programPath = "/sfb.exe";
 
-	pid_t pid = fork(); /* Create a child process */
+	pid_t pid = fork(); // Create a child process
 
 	switch (pid) {
-	case -1: /* Error */
-		std::cerr << "Uh-Oh! fork() failed.\n";
+	case -1: // Error
+		cerr << "Uh-Oh! fork() failed.\n";
 		exit(1);
-	case 0: /* Child process */
-		execl(programPath, NULL); /* Execute the program */
-		std::cerr << "Uh-Oh! execl() failed!"; /* execl doesn't return unless there's an error */
+	case 0: // Child process
+		execl(programPath.c_str(), NULL); // Execute the program
+		cerr << "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
 		exit(1);
-	default: /* Parent process */
-		std::cout << "Process created with pid " << pid << "\n";
+	default: // Parent process
+		cout << "Process created with pid " << pid << "\n";
 		int status;
 
 		while (!WIFEXITED(status)) {
 #ifdef _WIN32
-			waitpid(pid, status, 0); /* Wait for the process to complete */
+			waitpid(pid, status, 0); // Wait for the process to complete
 #else
 			// TODO: Get it working not only on windows only every time you write code...
 #endif
 		}
 
-		std::cout << "Process exited with " << WEXITSTATUS(status) << "\n";
+		cout << "Process exited with " << WEXITSTATUS(status) << "\n";
 
 		return 0;
 	}
 }
 #endif
+
+/*
+ * List files and directories within a directory.
+ */
+void Command::list_files(vector<string>* files, const char* dirname) {
+    DIR *dir;
+    struct dirent *ent;
+                
+    // Open directory stream
+    dir = opendir(dirname);
+    if (dir != NULL) {
+        // Print all files and directories within the directory
+        while ((ent = readdir(dir)) != NULL) {
+			files->push_back(ent->d_name);
+        }
+
+		// Close directory
+		closedir(dir);
+    } else {
+        // Could not open directory
+        cerr << "Cannot open directory " << dirname << endl;
+    }
+	return;
+}
