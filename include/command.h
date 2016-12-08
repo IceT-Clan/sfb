@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "sfb.h"
 #include "serial/serial.h"
 #include "network.h"
@@ -39,7 +40,7 @@ private:
 		{"cp", CMD_COPY},
 		{"copy", CMD_COPY},
 		{"mv", CMD_MOVE},
-		{ "mov", CMD_MOVE },
+		{"mov", CMD_MOVE},
 		{"move", CMD_MOVE},
 		{"ls", CMD_LS},
 		{"list", CMD_LS},
@@ -75,14 +76,15 @@ private:
 	bool	printworkingdirectory();
 	bool	makedirectory();
 	bool	makefile();
-	bool	remove();
+	bool	removefile();
 	bool	startInBackground(string port, bool hideConsole);
 	/**
 	*Checks if a file exists
 	*
 	*returns true when the file exists after the method returns
 	*/
-	bool	checkFile(string name, bool askForOverride);
+	bool	checkFileExists(string name);
+	void	list_files(vector<string>* files, const char* dirname);
 };
 
 #endif /* COMMAND_H */

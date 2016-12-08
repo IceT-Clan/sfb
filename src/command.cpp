@@ -281,7 +281,7 @@ bool Command::move() {
 	}
 
 	// Test target file
-	if (checkFile(argv[3], true)) return false;
+	if (checkFileExists(argv[3])) return false;
 
 	//files
 	ifstream source;
@@ -301,21 +301,28 @@ bool Command::move() {
 
 bool Command::move_b(REQ_PACKET& pkt) {
 	if (pkt.path0 != "" && pkt.path1 != "") {
-		if (checkFile(pkt.path1, true)) return false;
 		ifstream source(pkt.path0, ios::binary | ios::in);
 		if (!source.is_open()) {
 			cerr << "Can't open source file!" << endl;
+			return false;
 		}
-		ofstream target(pkt.path1, ios::binary | ios::out);
+		ofstream target(pkt.path1, ios::binary | ios::out | ios::trunc);
 		if (!target.is_open()) {
 			cerr << "Can't open target file!" << endl;
+			return false;
 		}
-		while (source.eof()) {
-			uint8_t byte;
-			source >> byte;
-			target << byte;
+
+		// Copy source to target
+		target << source.rdbuf();
+
+		// Remove source
+		if (remove(pkt.path0.c_str()) != 0) {
+			cerr << "Could not delete file(s)." << endl;
+			return true;
 		}
 	}
+
+	return true;
 }
 
 bool Command::list() {
@@ -483,7 +490,7 @@ bool Command::makefile() {
 	return true;
 }
 
-bool Command::remove() {
+bool Command::removefile() {
 	string command, option;
 
 	if (argv[2][0] == ':') {
@@ -497,7 +504,7 @@ bool Command::remove() {
 	return true;
 }
 
-bool Command::checkFile(string name, bool askForOverride) {
+bool Command::checkFileExists(string name) {
 	ifstream target;
 	target.open(argv[3], ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
@@ -507,19 +514,19 @@ bool Command::checkFile(string name, bool askForOverride) {
 		}
 	}
 	target.close();
-	cout << "File with the same name already exists! Do you want to override it? [y/N]" << endl;
-	string input;
-	cin >> input;
-	if (input.compare("y") != 0) {
-		return true;
+
+	vector<string> files;
+	list_files(&files, ".");
+	if(find(files.begin(), files.end(), name) == files.end()) {
+		// File already exists
+		cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
+		string input;
+		cin >> input;
+		if (input == "y" | input == "Y") {
+			return true;
+		}
 	}
 
-	// TODO: Fix it. This code does not compile (tested under linux)
-	//		 There is no remove(const char*) method/function
-	 if (std::remove(name.c_str()) != 0) {
-	 	perror("Error deleting the file");
-	 	return true;
-	 }
 	return false;
 }
 
@@ -577,3 +584,27 @@ bool Command::startInBackground(string port, bool hideConsole) {
 	}
 }
 #endif
+
+/*
+ * List files and directories within a directory.
+ */
+void Command::list_files(vector<string>* files, const char* dirname) {
+    DIR *dir;
+    struct dirent *ent;
+                
+    // Open directory stream
+    dir = opendir(dirname);
+    if (dir != NULL) {
+        // Print all files and directories within the directory
+        while ((ent = readdir(dir)) != NULL) {
+			files->push_back(ent->d_name);
+        }
+
+		// Close directory
+		closedir(dir);
+    } else {
+        // Could not open directory
+        cerr << "Cannot open directory " << dirname << endl;
+    }
+	return;
+}
