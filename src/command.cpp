@@ -228,6 +228,24 @@ bool Command::start() {
 		case CMD_MOVE:
 			result = move_b(pkt);
 			break;
+		case CMD_LS:
+			result = ls_b(pkt);
+			break;
+		case CMD_LA:
+			result = la_b(pkt);
+			break;
+		case CMD_PWD:
+			result = pwd_b(pkt);
+			break;
+		case CMD_MKDIR:
+			result = mkdir_b(pkt);
+			break;
+		case CMD_RM:
+			result = rm_b(pkt);
+			break;
+		case CMD_TOUCH:
+			result = touch_b(pkt);
+			break;
 		default:
 			cerr << "Unknown command!" << endl;
 			break;
@@ -323,6 +341,101 @@ bool Command::move_b(REQ_PACKET& pkt) {
 	}
 
 	return true;
+}
+
+bool Command::ls_b(REQ_PACKET& pkt) {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	DIR *dir;
+	struct dirent *ent;
+	string msg;
+
+	//Open directory stream
+	dir = opendir((pkt.path0).c_str());
+	if (dir != NULL) {
+
+		//Print all files and directories within the directory
+		while ((ent = readdir(dir)) != NULL) {
+			sprintf((char*)msg.c_str(), "%s ",ent->d_name);
+		}
+
+		closedir(dir);
+
+	}
+	else {
+		//Could not open directory
+		cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	DATA_PACKET asw_pkt;
+	asw_pkt.msg = msg;
+
+	net->sendpkt(asw_pkt);
+
+	return true;
+}
+
+bool Command::la_b(REQ_PACKET& pkt) {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	DIR *dir;
+	struct dirent *ent;
+	string msg;
+
+	//Open directory stream
+	dir = opendir((pkt.path0).c_str());
+	if (dir != NULL) {
+
+		//Print all files and directories within the directory
+		while ((ent = readdir(dir)) != NULL) {
+			sprintf((char*)msg.c_str(), "%s %s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_namlen, ent->d_name);
+		}
+
+		closedir(dir);
+
+	}
+	else {
+		//Could not open directory
+		cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	DATA_PACKET asw_pkt;
+	asw_pkt.msg = msg;
+
+	net->sendpkt(asw_pkt);
+	return true;
+}
+
+bool Command::mkdir_b(REQ_PACKET& pkt) {
+	string command, option;
+
+		option = (pkt.path0).c_str();
+#ifdef _WIN32
+		command = "copy nul > " + option;
+#else
+		command = "touch " + option;
+#endif
+		system((const char*)command.c_str());
+}
+
+bool Command::pwd_b(REQ_PACKET& pkt) {
+	char buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	string::size_type pos = string(buffer).find_last_of("\\/");
+	string msg = string(buffer).substr(0, pos);
+
+	DATA_PACKET asw_pkt;
+	asw_pkt.msg = msg;
+
+	net->sendpkt(asw_pkt);
+	return true;
+}
+
+bool Command::rm_b(REQ_PACKET& pkt) {
+
+}
+bool Command::touch_b(REQ_PACKET& pkt) {
+
 }
 
 bool Command::list() {
@@ -443,7 +556,6 @@ bool Command::changedirectory() {
 
 	net->recv();
 
-
 	return true;
 }
 
@@ -472,6 +584,17 @@ bool Command::makedirectory() {
 #endif
 	system((const char*)command.c_str());
 	}
+
+	REQ_PACKET makedirectory;
+
+	//Build printworkingdirectory packet
+	makedirectory.cmd = CMD_MKDIR;
+	makedirectory.path0 = argv[2];
+
+	//send packet
+	net->sendpkt(makedirectory);
+
+	net->recv();
 	return true;
 }
 

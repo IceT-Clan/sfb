@@ -70,6 +70,12 @@ private:
 	bool	copy();
 	bool	move();
 	bool	move_b(REQ_PACKET& pkt);
+	bool	ls_b(REQ_PACKET & pkt);
+	bool	la_b(REQ_PACKET & pkt);
+	bool	mkdir_b(REQ_PACKET & pkt);
+	bool	pwd_b(REQ_PACKET & pkt);
+	bool	rm_b(REQ_PACKET & pkt);
+	bool	touch_b(REQ_PACKET & pkt);
 	bool	list();
 	bool	listall();
 	bool	changedirectory();

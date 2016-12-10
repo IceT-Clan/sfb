@@ -57,13 +57,13 @@ class Network
 		bool			getconfPacketAvailable();
 		bool			getinfoPacketAvailable();
 
-		template <class temp>
-		bool		sendraw(const temp &pkt);
+		template		<class temp>
+		bool			sendraw(const temp &pkt);
 
-		bool		sendpkt(REQ_PACKET &pkt);
-		bool		sendpkt(INFO_PACKET &pkt);
-		bool		sendpkt(CONF_PACKET &pkt);
-		bool		sendpkt(DATA_PACKET &pkt);
+		bool			sendpkt(REQ_PACKET &pkt);
+		bool			sendpkt(INFO_PACKET &pkt);
+		bool			sendpkt(CONF_PACKET &pkt);
+		bool			sendpkt(DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */
