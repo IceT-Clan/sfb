@@ -282,7 +282,6 @@ bool Command::move_b(REQ_PACKET& pkt) {
 }
 
 bool Command::ls_b(REQ_PACKET& pkt) {
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	DIR *dir;
 	struct dirent *ent;
 	string msg;
@@ -314,7 +313,6 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 }
 
 bool Command::la_b(REQ_PACKET& pkt) {
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	DIR *dir;
 	struct dirent *ent;
 	string msg;
@@ -325,7 +323,7 @@ bool Command::la_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf((char*)msg.c_str(), "%s %s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_namlen, ent->d_name);
+			sprintf((char*)msg.c_str(), "%s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_name);
 		}
 
 		closedir(dir);
@@ -359,8 +357,13 @@ bool Command::mkdir_b(REQ_PACKET& pkt) {
 }
 
 bool Command::pwd_b(REQ_PACKET& pkt) {
+#ifdef _WIN32
 	char buffer[MAX_PATH];
 	GetModuleFileName(NULL, buffer, MAX_PATH);
+#else
+	char buffer[PATH_MAX];
+	readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+#endif
 	string::size_type pos = string(buffer).find_last_of("\\/");
 	string msg = string(buffer).substr(0, pos);
 
