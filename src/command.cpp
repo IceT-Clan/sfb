@@ -417,10 +417,6 @@ bool Command::copy() {
 	//send packet
 	net->sendpkt(copy);
 
-	while (!net->getconfPacketAvailable) {
-		_sleep(10);
-	}
-
 	return true;
 }
 
@@ -515,7 +511,7 @@ bool Command::list() {
 		}
 	}
 
-	else if (net->getdataPacketAvailable){
+	else if (net->getdataPacketAvailable()){
 		DATA_PACKET data = net->getdatapacket();
 		cout << data.msg;
 	}
@@ -581,7 +577,7 @@ bool Command::listall() {
 		//send packet
 		net->sendpkt(listall);
 
-		if (net->getdataPacketAvailable) {
+		if (net->getdataPacketAvailable()) {
 			DATA_PACKET data = net->getdatapacket();
 			cout << data.msg;
 		}
@@ -606,10 +602,6 @@ bool Command::changedirectory() {
 
 	//send packet
 	net->sendpkt(changedirectory);
-
-	while (!net->getconfPacketAvailable) {
-		_sleep(10);
-	}
 
 	return true;
 }
@@ -644,10 +636,6 @@ bool Command::makedirectory() {
 	//send packet
 	net->sendpkt(makedirectory);
 
-	while (!net->getconfPacketAvailable) {
-		_sleep(10);
-	}
-
 	return true;
 }
 
@@ -673,10 +661,6 @@ bool Command::makefile() {
 	//send packet
 	net->sendpkt(makefile);
 
-	while (!net->getconfPacketAvailable) {
-		_sleep(10);
-	}
-
 	return true;
 }
 
@@ -700,10 +684,6 @@ bool Command::removefile() {
 
 	//send packet
 	net->sendpkt(removefile);
-
-	while (!net->getconfPacketAvailable) {
-		_sleep(10);
-	}
 
 	return true;
 }
