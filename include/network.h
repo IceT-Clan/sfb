@@ -31,6 +31,7 @@ class Network
 		DATA_PACKET		dataPacket;
 		CONF_PACKET		confPacket;
 		INFO_PACKET		infoPacket;
+		MSG_PACKET		msgPacket;
 		bool			requestPacketAvailable = false;
 		bool			dataPacketAvailable = false;
 		bool			confPacketAvailable = false;
@@ -51,11 +52,13 @@ class Network
 		DATA_PACKET		getdatapacket();
 		CONF_PACKET		getconfpacket();
 		INFO_PACKET		getinfopacket();
+		MSG_PACKET		getmsgpacket();
 
 		bool			getrequestPacketAvailable();
 		bool			getdataPacketAvailable();
 		bool			getconfPacketAvailable();
 		bool			getinfoPacketAvailable();
+		bool			getmsgpacketAvailable();
 
 		template		<class temp>
 		bool			sendraw(const temp &pkt);
@@ -64,6 +67,7 @@ class Network
 		bool			sendpkt(INFO_PACKET &pkt);
 		bool			sendpkt(CONF_PACKET &pkt);
 		bool			sendpkt(DATA_PACKET &pkt);
+		bool			sendpkt(MSG_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */

@@ -75,7 +75,7 @@ private:
 	bool	mkdir_b(REQ_PACKET & pkt);
 	bool	pwd_b(REQ_PACKET & pkt);
 	bool	rm_b(REQ_PACKET & pkt);
-	bool	touch_b(REQ_PACKET & pkt);
+	bool	makefile_b(REQ_PACKET & pkt);
 	bool	list();
 	bool	listall();
 	bool	changedirectory();

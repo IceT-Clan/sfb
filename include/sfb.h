@@ -51,7 +51,6 @@ typedef struct {
 
 // Answer packet structure
 typedef struct {
-	string		msg;
 	uint8_t		bytes[252];
 	uint32_t	checksum;
 } DATA_PACKET;

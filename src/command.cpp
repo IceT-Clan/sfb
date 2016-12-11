@@ -244,7 +244,7 @@ bool Command::start() {
 			result = rm_b(pkt);
 			break;
 		case CMD_TOUCH:
-			result = touch_b(pkt);
+			result = makefile_b(pkt);
 			break;
 		default:
 			cerr << "Unknown command!" << endl;
@@ -253,68 +253,6 @@ bool Command::start() {
 		if(result)	cout << "Executed successfully." << endl;
 		else		cout << "Could not execute." << endl;
 	}
-}
-
-bool Command::copy() {
-	REQ_PACKET			copy;
-
-	//Build copy packet
-	copy.cmd =			CMD_COPY;
-	copy.path0 =		argv[2];
-	copy.path1 =		argv[3];
-
-	//send packet
-	net->sendpkt(copy);
-
-	net->recv();
-
-
-	return true;
-}
-
-bool Command::move() {
-	//Paths
-	string sourcePath(argv[2]);
-	string targetPath(argv[3]);
-
-	bool isSourceHere = false;
-	bool isTargetHere = false;
-
-	//Test for and remove ':'
-	if (sourcePath[0] == ':') {
-		isSourceHere = true;
-		sourcePath.erase(0, 1);
-	}
-	if (targetPath[0] == ':') {
-		isTargetHere = true;
-		targetPath.erase(0, 1);
-	}
-
-	if (!(isSourceHere && isTargetHere)) {
-		REQ_PACKET pkt { CMD_MOVE, "", "" };
-		if (!isSourceHere) pkt.path0;
-		if (!isTargetHere) pkt.path1;
-		net->sendpkt(pkt);
-		return true;
-	}
-
-	// Test target file
-	if (checkFileExists(argv[3])) return false;
-
-	//files
-	ifstream source;
-	ofstream target;
-
-	//Open files
-	source.open(argv[2], ios_base::in | ios_base::binary);
-	if (!source.is_open()) {
-		cerr << "Error opening source: " << strerror(errno) << endl;
-	}
-	target.open(argv[3], ios_base::out | ios_base::binary);
-	if (!target.is_open()) {
-		cerr << "Error opening target: " << strerror(errno) << endl;
-	}
-	return true;
 }
 
 bool Command::move_b(REQ_PACKET& pkt) {
@@ -409,13 +347,15 @@ bool Command::la_b(REQ_PACKET& pkt) {
 bool Command::mkdir_b(REQ_PACKET& pkt) {
 	string command, option;
 
-		option = (pkt.path0).c_str();
-#ifdef _WIN32
-		command = "copy nul > " + option;
-#else
-		command = "touch " + option;
-#endif
-		system((const char*)command.c_str());
+	option = (pkt.path0).c_str(); 
+	command = "mkdir " + option;
+	system((const char*)command.c_str());
+
+	CONF_PACKET conf;
+	conf.confirmation = true;
+	net->sendpkt(conf);
+
+	return true;
 }
 
 bool Command::pwd_b(REQ_PACKET& pkt) {
@@ -432,10 +372,101 @@ bool Command::pwd_b(REQ_PACKET& pkt) {
 }
 
 bool Command::rm_b(REQ_PACKET& pkt) {
+	string command;
 
+#ifdef _WIN32
+	command = "del " + pkt.path0;
+#else
+	command = "rm -rf" + pkt.path0;
+#endif
+	system((const char*)command.c_str());
+
+	CONF_PACKET conf;
+	conf.confirmation = true;
+	net->sendpkt(conf);
+
+	return true;
 }
-bool Command::touch_b(REQ_PACKET& pkt) {
 
+bool Command::makefile_b(REQ_PACKET& pkt) {
+	string command, option;
+
+	option = (pkt.path0).c_str();
+#ifdef _WIN32
+	command = "copy nul > " + option;
+#else
+	command = "touch " + option;
+#endif
+	system((const char*)command.c_str());
+
+	CONF_PACKET conf;
+	conf.confirmation = true;
+	net->sendpkt(conf);
+
+	return true;
+}
+
+bool Command::copy() {
+	REQ_PACKET			copy;
+
+	//Build copy packet
+	copy.cmd = CMD_COPY;
+	copy.path0 = argv[2];
+	copy.path1 = argv[3];
+
+	//send packet
+	net->sendpkt(copy);
+
+	while (!net->getconfPacketAvailable) {
+		_sleep(10);
+	}
+
+	return true;
+}
+
+bool Command::move() {
+	//Paths
+	string sourcePath(argv[2]);
+	string targetPath(argv[3]);
+
+	bool isSourceHere = false;
+	bool isTargetHere = false;
+
+	//Test for and remove ':'
+	if (sourcePath[0] == ':') {
+		isSourceHere = true;
+		sourcePath.erase(0, 1);
+	}
+	if (targetPath[0] == ':') {
+		isTargetHere = true;
+		targetPath.erase(0, 1);
+	}
+
+	if (!(isSourceHere && isTargetHere)) {
+		REQ_PACKET pkt{ CMD_MOVE, "", "" };
+		if (!isSourceHere) pkt.path0;
+		if (!isTargetHere) pkt.path1;
+		net->sendpkt(pkt);
+		return true;
+	}
+
+	// Test target file
+	if (checkFileExists(argv[3])) return false;
+
+	//files
+	ifstream source;
+	ofstream target;
+
+	//Open files
+	source.open(argv[2], ios_base::in | ios_base::binary);
+	if (!source.is_open()) {
+		cerr << "Error opening source: " << strerror(errno) << endl;
+	}
+	target.open(argv[3], ios_base::out | ios_base::binary);
+	if (!target.is_open()) {
+		cerr << "Error opening target: " << strerror(errno) << endl;
+	}
+	return true;
 }
 
 bool Command::list() {
@@ -483,6 +514,12 @@ bool Command::list() {
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	else if (net->getdataPacketAvailable){
+		DATA_PACKET data = net->getdatapacket();
+		cout << data.msg;
+	}
+
 #endif
 	return true;
 }
@@ -533,6 +570,22 @@ bool Command::listall() {
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	else {
+		REQ_PACKET listall;
+
+		//Build listall packet
+		listall.cmd = CMD_CD;
+		listall.path0 = argv[2];
+
+		//send packet
+		net->sendpkt(listall);
+
+		if (net->getdataPacketAvailable) {
+			DATA_PACKET data = net->getdatapacket();
+			cout << data.msg;
+		}
+	}
 #else
 	// TODO
 #endif
@@ -554,7 +607,9 @@ bool Command::changedirectory() {
 	//send packet
 	net->sendpkt(changedirectory);
 
-	net->recv();
+	while (!net->getconfPacketAvailable) {
+		_sleep(10);
+	}
 
 	return true;
 }
@@ -568,7 +623,6 @@ bool Command::printworkingdirectory() {
 	//send packet
 	net->sendpkt(pwd);
 
-	net->recv();
 	return true;
 }
 
@@ -576,12 +630,8 @@ bool Command::makedirectory() {
 	string option, command;
 
 	if (argv[2][0] == ':') {
-#ifdef _WIN32
 		option = argv[2] + 1;
 		command = "mkdir " + option;
-#else
-	// TODO
-#endif
 	system((const char*)command.c_str());
 	}
 
@@ -594,7 +644,10 @@ bool Command::makedirectory() {
 	//send packet
 	net->sendpkt(makedirectory);
 
-	net->recv();
+	while (!net->getconfPacketAvailable) {
+		_sleep(10);
+	}
+
 	return true;
 }
 
@@ -610,6 +663,20 @@ bool Command::makefile() {
 #endif
 		system((const char*)command.c_str());
 	}
+
+	REQ_PACKET makefile;
+
+	//Build makefile packet
+	makefile.cmd = CMD_TOUCH;
+	makefile.path0 = argv[2];
+
+	//send packet
+	net->sendpkt(makefile);
+
+	while (!net->getconfPacketAvailable) {
+		_sleep(10);
+	}
+
 	return true;
 }
 
@@ -624,6 +691,20 @@ bool Command::removefile() {
 #endif
 		system((const char*)command.c_str());
 	}
+
+	REQ_PACKET removefile;
+
+	//Build makefile packet
+	removefile.cmd = CMD_RM;
+	removefile.path0 = argv[2];
+
+	//send packet
+	net->sendpkt(removefile);
+
+	while (!net->getconfPacketAvailable) {
+		_sleep(10);
+	}
+
 	return true;
 }
 
