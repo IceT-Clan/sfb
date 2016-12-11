@@ -5,8 +5,15 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <iostream>
+#include <fstream>
 #include "sfb.h"
 #include "serial/serial.h"
+#ifndef _WIN32
+	#include <unistd.h>
+#endif
 
 using namespace std;
 using namespace serial;
@@ -20,24 +27,43 @@ class Network
 		//vector<uint8_t byte;
 		string			filename;
 
-		DATA_PACKET		anspacket;
+		REQ_PACKET		requestPacket;
+		DATA_PACKET		dataPacket;
+		CONF_PACKET		confPacket;
+		INFO_PACKET		infoPacket;
+		bool			requestPacketAvailable = false;
+		bool			dataPacketAvailable = false;
+		bool			confPacketAvailable = false;
+		bool			infoPacketAvailable = false;
+
+		thread*			receive;
+		mutex			sec;
 	public:
 		Network();
 		~Network();
 
-		bool		readfileinfos(string path);
+		bool			readfileinfos(string path);
+		bool			init(string port = "");
+		bool			recv();
+		string			getfilename(string path);
 
-		bool		init(string port);
-		bool		send(REQ_PACKET* req);
+		REQ_PACKET		getrequestpacket();
+		DATA_PACKET		getdatapacket();
+		CONF_PACKET		getconfpacket();
+		INFO_PACKET		getinfopacket();
 
-		string getfilename(string path);
-				
-		DATA_PACKET* recv();
+		bool			getrequestPacketAvailable();
+		bool			getdataPacketAvailable();
+		bool			getconfPacketAvailable();
+		bool			getinfoPacketAvailable();
 
-		bool		send(const REQ_PACKET &pkt );
-		bool		send(const INFO_PACKET &pkt);
-		bool		send(const CONF_PACKET &pkt);
-		bool		send(const DATA_PACKET &pkt);
+		template <class temp>
+		bool		sendraw(const temp &pkt);
+
+		bool		sendpkt(REQ_PACKET &pkt);
+		bool		sendpkt(INFO_PACKET &pkt);
+		bool		sendpkt(CONF_PACKET &pkt);
+		bool		sendpkt(DATA_PACKET &pkt);
 };
 
 #endif /* NETWORK_H */
