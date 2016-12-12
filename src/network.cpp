@@ -221,14 +221,10 @@ bool Network::sendpkt(CONF_PACKET &pkt) {
 // SEND DATA
 bool Network::sendpkt(DATA_PACKET &pkt) {
 	sendraw(PACKETS::DATA);
+
 	 //hashcode
+	createCheckSum(pkt);
 
-	size_t seed = sizeof(pkt.bytes);
-	for (const uint8_t& b : pkt.bytes) {
-		hash_combine(seed, b);
-	}
-
-	pkt.checksum = seed;
 	serial->write(pkt.bytes, 252);
 	sendraw(pkt.checksum);
 	cout << "SENT" <<endl;
@@ -239,4 +235,13 @@ template <class temp>
 bool Network::sendraw(const temp &pkt) {
 	serial->write(reinterpret_cast<const uint8_t*>(&(pkt)), sizeof(pkt));
 	return true;
+}
+
+void Network::createCheckSum(DATA_PACKET& pkt) {
+	size_t seed = sizeof(pkt.bytes);
+	for (const uint8_t& b : pkt.bytes) {
+		hash_combine(seed, b);
+	}
+
+	pkt.checksum = seed;
 }

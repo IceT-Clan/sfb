@@ -41,7 +41,7 @@ typedef struct {
 
 // Data Info Answer
 typedef struct {
-	size_t		bytesnr;
+	unsigned long long bytesnr;
 } INFO_PACKET;
 
 // Send? 
