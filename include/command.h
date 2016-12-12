@@ -76,6 +76,11 @@ private:
 	bool	pwd_b(REQ_PACKET & pkt);
 	bool	rm_b(REQ_PACKET & pkt);
 	bool	makefile_b(REQ_PACKET & pkt);
+	bool	moveOrCopy(bool move);
+	bool	moveOrCopy_b(REQ_PACKET& pkt, bool move);
+	bool	sendFile(string path, bool move);	// Move or copies file from this pc to other pc
+	bool	recvFile(string path, bool move);	// Move or copies file from other pc to this pc
+	bool	handleFile(string sourceP, string targetP, bool move);	// Move or copies file on this pc
 	bool	list();
 	bool	listall();
 	bool	changedirectory();

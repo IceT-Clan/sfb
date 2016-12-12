@@ -38,6 +38,8 @@ class Network
 
 		thread*			receive;
 		mutex			sec;
+
+		bool			threadRunning;
 	public:
 		Network();
 		~Network();
@@ -64,6 +66,8 @@ class Network
 		bool			sendpkt(INFO_PACKET &pkt);
 		bool			sendpkt(CONF_PACKET &pkt);
 		bool			sendpkt(DATA_PACKET &pkt);
+
+		static void		createCheckSum(DATA_PACKET& pkt);
 };
 
 #endif /* NETWORK_H */
