@@ -677,17 +677,19 @@ bool Command::recvFile(string path, bool move) {
 		return false;
 	}
 	DATA_PACKET dPkt;
-	unsigned long long packets = iPkt.bytesnr / 252ULL;
-	while (packets) {
+	unsigned long long packetCount = iPkt.bytesnr / 252ULL;
+	unsigned long long packet = 0ULL;
+	while (packet < packetCount) {
 		dPkt = net->getdatapacket();
 		size_t recievedCheckSum = dPkt.checksum;
 		Network::createCheckSum(dPkt);
 		if (recievedCheckSum != dPkt.checksum) {
-			cerr << "Error on sending!" << endl;
+			cerr << "Error on sending! Packet " << packet << "broke" << endl;
 			target.close();
 			return false;
 		}
 		target.write(reinterpret_cast<char*>(dPkt.bytes), 252);
+		packet++;
 	}
 }
 
