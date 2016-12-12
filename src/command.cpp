@@ -10,8 +10,8 @@ Command::Command(int argc, char** argv) {
 	this->net = new Network();
 
 	// Check if default port is available
-	if (!net->init()) {
-		std::cerr << "Failed to init network" << endl;
+	if (!net->init("COM2")) {
+		CERR( "Failed to init network" << endl);
 	}
 
 }
@@ -64,90 +64,90 @@ bool Command::exec() {
 			return start();
 		case CMD_COPY:
 			if (argc < 4) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl);
 				return false;
 			}
 			if (argc > 4) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl);
 				return false;
 			}
 			return moveOrCopy(false);
 		case CMD_MOVE:
 			if (argc < 4) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl);
 				return false;
 			}
 			if (argc > 4) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl);
 				return false;
 			}
-			return move();
+			return moveOrCopy(true);
 		case CMD_LS:
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " ls [path]" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " ls [path]" << endl);
 			}
 			return list();
 		case CMD_LA:
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " la [path]" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " la [path]" << endl);
 			}
 			return listall();
 		case CMD_CD:
 			if (argc < 3) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " cd <destination>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " cd <destination>" << endl);
 				return false;
 			}
 			return changedirectory();
 		case CMD_PWD:
 			if (argc > 2) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " pwd" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " pwd" << endl);
 				return false;
 			}
 			return printworkingdirectory();
 		case CMD_MKDIR:
 			if (argc < 3) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl);
 				return false;
 			}
 		case CMD_TOUCH:
 			if (argc < 3) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " touch <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " touch <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl);
 				return false;
 			}
 		case CMD_RM:
 			if (argc < 3) {
-				std::cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " rm <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				std::cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " rm <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl);
 				return false;
 			}
 		default:
@@ -159,7 +159,7 @@ bool Command::exec() {
 }
 
 bool Command::print_help() {
-	std::cout << endl << "Usage: " << argv[0] << endl << 
+	COUT(endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
 		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm <path>]" << endl <<
 		"Options:" << endl <<
@@ -175,7 +175,7 @@ bool Command::print_help() {
 		"mkdir  | make directory            Create a directory at the given path" << endl <<
 		"touch  | create file               Create a file at the given path" << endl <<
 		"rm     | remove file               Remove a file or directory" << endl << endl << 
-		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl;
+		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl);
 
 	return true;
 }
@@ -196,7 +196,7 @@ bool Command::start() {
 			hideConsole = true;
 		} else {
 			if (!port.empty()) {
-				std::cerr << "Invalid arguments" << endl;
+				CERR( "Invalid arguments" << endl);
 				return false;
 			}
 			port = arg;
@@ -219,7 +219,7 @@ bool Command::start() {
 #endif
 	}
 
-	std::cout << "Start listening for commands..." << endl;
+	COUT("Start listening for commands..." << endl);
 	while (true) {
 		bool result = false;
 		while (!net->getrequestPacketAvailable()) {}
@@ -250,11 +250,11 @@ bool Command::start() {
 			result = makefile_b(pkt);
 			break;
 		default:
-			std::cerr << "Unknown command!" << endl;
+			CERR( "Unknown command!" << endl);
 			break;
 		}
-		if(result)	std::cout << "Executed successfully." << endl;
-		else		std::cout << "Could not execute." << endl;
+		if(result)	COUT("Executed successfully." << endl)
+		else		COUT("Could not execute." << endl);
 	}
 }
 
@@ -262,12 +262,12 @@ bool Command::move_b(REQ_PACKET& pkt) {
 	if (pkt.path0 != "" && pkt.path1 != "") {
 		ifstream source(pkt.path0, ios::binary | ios::in);
 		if (!source.is_open()) {
-			std::cerr << "Can't open source file!" << endl;
+			CERR( "Can't open source file!" << endl);
 			return false;
 		}
 		ofstream target(pkt.path1, ios::binary | ios::out | ios::trunc);
 		if (!target.is_open()) {
-			std::cerr << "Can't open target file!" << endl;
+			CERR( "Can't open target file!" << endl);
 			return false;
 		}
 
@@ -276,7 +276,7 @@ bool Command::move_b(REQ_PACKET& pkt) {
 
 		// Remove source
 		if (remove(pkt.path0.c_str()) != 0) {
-			std::cerr << "Could not delete file(s)." << endl;
+			CERR( "Could not delete file(s)." << endl);
 			return true;
 		}
 	}
@@ -303,7 +303,7 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 	}
 	else {
 		//Could not open directory
-		std::cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		COUT("Cannot open directory " << (pkt.path0).c_str() << endl);
 		exit(EXIT_FAILURE);
 	}
 
@@ -318,7 +318,7 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 bool Command::la_b(REQ_PACKET& pkt) {
 	DIR *dir;
 	struct dirent *ent;
-	string msg;
+	char msg[50000];
 
 	//Open directory stream
 	dir = opendir((pkt.path0).c_str());
@@ -326,7 +326,7 @@ bool Command::la_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf((char*)msg.c_str(), "%s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_name);
+			sprintf(msg, "%s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_name);
 		}
 
 		closedir(dir);
@@ -334,7 +334,7 @@ bool Command::la_b(REQ_PACKET& pkt) {
 	}
 	else {
 		//Could not open directory
-		std::cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		COUT("Cannot open directory " << (pkt.path0).c_str() << endl);
 		exit(EXIT_FAILURE);
 	}
 
@@ -353,7 +353,7 @@ bool Command::mkdir_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -388,7 +388,7 @@ bool Command::rm_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -406,7 +406,7 @@ bool Command::makefile_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -453,7 +453,7 @@ bool Command::move() {
 	}
 
 	// Test target file
-	if (checkFileExists(argv[3])) return false;
+	if (checkFileExists(argv[3], true)) return false;
 
 	//files
 	ifstream source;
@@ -462,11 +462,11 @@ bool Command::move() {
 	//Open files
 	source.open(argv[2], ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		std::cerr << "Error opening source: " << strerror(errno) << endl;
+		CERR( "Error opening source: " << strerror(errno) << endl);
 	}
 	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		std::cerr << "Error opening target: " << strerror(errno) << endl;
+		CERR( "Error opening target: " << strerror(errno) << endl);
 	}
 	return true;
 }
@@ -487,23 +487,23 @@ bool Command::list() {
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					std::cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 					break;
 
 				case DT_DIR:
 					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
-					std::cout << ent->d_name << "/ ";
+					COUT(ent->d_name << "/ ");
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
-					std::cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 					break;
 
 				default:
-					std::cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 				}
 			}
 
@@ -512,14 +512,14 @@ bool Command::list() {
 		}
 		else {
 			//Could not open directory
-			std::cout << "Cannot open directory " << argv[2] + 1 << endl;
+			COUT("Cannot open directory " << argv[2] + 1 << endl);
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	else if (net->getdataPacketAvailable()){
 		DATA_PACKET data = net->getdatapacket();
-		std::cout << data.msg;
+		COUT(data.msg);
 	}
 
 #endif
@@ -542,24 +542,24 @@ bool Command::listall() {
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					std::cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 					break;
 
 				case DT_DIR:
-					std::cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t");
 					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
-					std::cout << ent->d_name << "/" << endl;
+					COUT(ent->d_name << "/" << endl);
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
-					std::cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 					break;
 
 				default:
-					std::cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 				}
 			}
 
@@ -568,7 +568,7 @@ bool Command::listall() {
 		}
 		else {
 			//Could not open directory
-			std::cout << "Cannot open directory " << argv[2] + 1 << endl;
+			COUT("Cannot open directory " << argv[2] + 1 << endl);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -577,7 +577,7 @@ bool Command::listall() {
 		REQ_PACKET listall;
 
 		//Build listall packet
-		listall.cmd = CMD_CD;
+		listall.cmd = CMD_LA;
 		listall.path0 = argv[2];
 
 		//send packet
@@ -585,7 +585,7 @@ bool Command::listall() {
 
 		if (net->getdataPacketAvailable()) {
 			DATA_PACKET data = net->getdatapacket();
-			std::cout << data.msg;
+			COUT(data.msg);
 		}
 	}
 #else
@@ -694,7 +694,7 @@ bool Command::removefile() {
 	return true;
 }
 
-bool Command::checkFileExists(string name) {
+bool Command::checkFileExists(string name, bool question) {
 	ifstream target;
 	target.open(name, ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
@@ -706,18 +706,19 @@ bool Command::checkFileExists(string name) {
 	target.close();
 
 	// File already exists
-	std::cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
-	string input;
-	cin >> input;
-	if (input == "y" | input == "Y") {
-		//Delete file
-		if (std::remove(name.c_str()) != 0) {
-			perror("Error deleting the file");
-			return true;
+	if (question) {
+		COUT("File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl);
+		string input;
+		cin >> input;
+		if (input == "y" | input == "Y") {
+			//Delete file
+			if (std::remove(name.c_str()) != 0) {
+				perror("Error deleting the file");
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
-
 	return true;
 }
 
@@ -733,7 +734,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 
 	/* Create the process */
 	if (!CreateProcess(NULL, lpCommandLine, NULL, NULL, false, CREATE_NEW_CONSOLE, NULL, NULL, &lpStartupInfo, &lpProcessInfo)) {
-		std::cerr << "Failed to create background process" << endl;
+		CERR( "Failed to create background process" << endl);
 		return false;
 	}
 
@@ -751,14 +752,14 @@ bool Command::startInBackground(string port, bool hideConsole) {
 
 	switch (pid) {
 	case -1: // Error
-		std::cerr << "Uh-Oh! fork() failed.\n";
+		CERR( "Uh-Oh! fork() failed.\n";
 		exit(1);
 	case 0: // Child process
 		execl(programPath.c_str(), NULL); // Execute the program
-		std::cerr << "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
+		CERR( "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
 		exit(1);
 	default: // Parent process
-		std::cout << "Process created with pid " << pid << "\n";
+		COUT("Process created with pid " << pid << "\n";
 		int status;
 
 		while (!WIFEXITED(status)) {
@@ -769,7 +770,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 #endif
 		}
 
-		std::cout << "Process exited with " << WEXITSTATUS(status) << "\n";
+		COUT("Process exited with " << WEXITSTATUS(status) << "\n";
 
 		return 0;
 	}
@@ -795,7 +796,7 @@ void Command::list_files(vector<string>* files, const char* dirname) {
 		closedir(dir);
     } else {
         // Could not open directory
-        std::cerr << "Cannot open directory " << dirname << endl;
+        CERR( "Cannot open directory " << dirname << endl);
     }
 	return;
 }
@@ -873,7 +874,7 @@ bool Command::sendFile(string path, bool move) {
 	//Open file
 	source.open(path, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		std::cerr << "Error opening source: " << strerror(errno) << endl;
+		CERR( "Error opening source: " << strerror(errno) << endl);
 		return false;
 	}
 
@@ -886,10 +887,29 @@ bool Command::sendFile(string path, bool move) {
 
 	// Receive confirmation
 	CONF_PACKET cPkt = net->getconfpacket();
-	if (!cPkt.confirmation) {
-		std::cerr << "Connected computer denied moving the file" << endl;
-		return false;
+	if (cPkt.confirmation != CONFIRMATION::OK) {
+		if ((cPkt.confirmation & CONFIRMATION::FILE_EXISTS) != 0) {
+			COUT("File with the same name already exists! do you want to override it? [y/N]" << endl);
+			string input;
+			cin >> input;
+			CONF_PACKET cPkt;
+			if (input == "y" | input == "Y") {
+				cPkt.confirmation = CONFIRMATION::DELETE_FILE;
+				net->sendpkt(cPkt);
+			}
+			else {
+				cPkt.confirmation = CONFIRMATION::NOT_DELETE_FILE;
+				net->sendpkt(cPkt);
+				return true;
+			}
+
+		}
+		if (cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE != 0) {
+			CERR("Connected computer denied moving the file: Not enough space ;)" << endl);
+			return false;
+		}
 	}
+	
 	DATA_PACKET dPkt;
 	while (!source.eof()) {
 		source.read(reinterpret_cast<char*>(dPkt.bytes), 252);
@@ -900,10 +920,12 @@ bool Command::sendFile(string path, bool move) {
 		dPkt.bytes[i] = '\0';
 	net->sendpkt(dPkt);
 
+	source.close();
+
 	// Remove source
 	if (move) {
 		if (remove(path.c_str()) != 0) {
-			std::cerr << "Could not delete source file" << endl;
+			CERR( "Could not delete source file: " << strerror(errno) << endl);
 			return true;
 		}
 	}
@@ -913,14 +935,18 @@ bool Command::recvFile(string path, bool move) {
 	//file
 	ofstream target;
 
-	//Open file
+	CONF_PACKET cPkt = { CONFIRMATION::OK };
+
 	// Test target file
-	if (checkFileExists(path)) {
-		return false;
+	bool isFileExisting = false;
+	if (checkFileExists(path, false)) {
+		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::FILE_EXISTS);
+		isFileExisting = true;
 	}
+	//Open file
 	target.open(path, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		std::cerr << "Error opening target: " << strerror(errno) << endl;
+		CERR( "Error opening target: " << strerror(errno) << endl);
 		return false;
 	}
 
@@ -935,7 +961,7 @@ bool Command::recvFile(string path, bool move) {
 
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
 			dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-		std::cerr << "Error getting free disc space: " << lpMsgBuf << endl;
+		CERR( "Error getting free disc space: " << lpMsgBuf << endl);
 		LocalFree(lpMsgBuf);
 		target.close();
 		return false;
@@ -944,27 +970,50 @@ bool Command::recvFile(string path, bool move) {
 #else
 	static_assert(true, "Not implemenmted: Linux free disc space function");
 #endif
-	CONF_PACKET cPkt;
-	cPkt.confirmation = freeSpace >= iPkt.bytesnr;
+
+	if(freeSpace < iPkt.bytesnr)
+		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::NOT_ENOUGH_SPACE);
 	net->sendpkt(cPkt);
-	if (!cPkt.confirmation) {
-		std::cerr << "Not enough free space on disc" << endl;
-		target.close();
-		return false;
+	if (cPkt.confirmation != CONFIRMATION::OK) {
+		if (isFileExisting) {
+			cPkt = net->getconfpacket();
+			if (cPkt.confirmation == CONFIRMATION::DELETE_FILE) {
+				target.close();
+				if (remove(path.c_str()) != 0) {
+					CERR("Could not delete file: " << strerror(errno) << endl);
+					return false;
+				}
+				target.open(path, ios_base::out | ios_base::binary);
+				if (!target.is_open()) {
+					CERR("Error opening target: " << strerror(errno) << endl);
+					return false;
+				}
+			}
+			else {
+				target.close();
+				return true;
+			}
+		}
+		else {
+			target.close();
+			return false;
+		}
 	}
 	DATA_PACKET dPkt;
-	unsigned long long packetCount = iPkt.bytesnr / 252ULL;
+	unsigned long long packetCount = iPkt.bytesnr / 252ULL + iPkt.bytesnr % 252ULL ? 1 : 0;
+	unsigned long long neededBytes = iPkt.bytesnr;
 	unsigned long long packet = 0ULL;
 	while (packet < packetCount) {
 		dPkt = net->getdatapacket();
 		size_t recievedCheckSum = dPkt.checksum;
 		Network::createCheckSum(dPkt);
 		if (recievedCheckSum != dPkt.checksum) {
-			std::cerr << "Error on sending! Packet " << packet << "broke" << endl;
+			CERR( "Error on sending! Packet " << packet << "broke" << endl);
 			target.close();
 			return false;
 		}
-		target.write(reinterpret_cast<char*>(dPkt.bytes), 252);
+		target.write(reinterpret_cast<char*>(dPkt.bytes), neededBytes > 252 ? 252 : neededBytes);
+		neededBytes -= 252;
 		packet++;
 	}
 }
@@ -977,17 +1026,17 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	//Open files
 	source.open(sourceP, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		std::cerr << "Error opening source: " << strerror(errno) << endl;
+		CERR( "Error opening source: " << strerror(errno) << endl);
 		return false;
 	}
 	// Test target file
-	if (checkFileExists(targetP)) {
+	if (checkFileExists(targetP, true)) {
 		source.close();
 		return false;
 	}
 	target.open(targetP, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		std::cerr << "Error opening target: " << strerror(errno) << endl;
+		CERR( "Error opening target: " << strerror(errno) << endl);
 		return false;
 	}
 
@@ -997,7 +1046,7 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	// Remove source
 	if (move) {
 		if (remove(targetP.c_str()) != 0) {
-			std::cerr << "Could not delete source file." << endl;
+			CERR( "Could not delete source file." << endl);
 		}
 	}
 	return true;

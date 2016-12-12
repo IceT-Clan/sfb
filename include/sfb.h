@@ -3,6 +3,7 @@
 #define SFB_H
 #include <string>
 #include <iostream>
+#include <mutex>
 
 using namespace std;
 
@@ -31,6 +32,13 @@ enum PACKETS : uint8_t {
 	CONF = 2,
 	DATA = 3
 };
+enum CONFIRMATION : uint8_t {
+	OK = 0,
+	NOT_ENOUGH_SPACE = 1,
+	FILE_EXISTS = 2,
+	DELETE_FILE,
+	NOT_DELETE_FILE
+};
 
 // Request packet structure
 typedef struct {
@@ -46,7 +54,7 @@ typedef struct {
 
 // Send? 
 typedef struct {
-	bool		confirmation;
+	CONFIRMATION	confirmation;
 } CONF_PACKET;
 
 // Answer packet structure
@@ -56,4 +64,10 @@ typedef struct {
 	uint32_t	checksum;
 } DATA_PACKET;
 
+class Globals {
+public:
+	static mutex g_coutMutex;
+#define COUT(x) {lock_guard<mutex> lock(Globals::g_coutMutex); cout << x;}
+#define CERR(x) {lock_guard<mutex> lock(Globals::g_coutMutex); cerr << x;}
+};
 #endif /* SFB_H */

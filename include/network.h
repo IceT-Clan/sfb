@@ -66,6 +66,8 @@ class Network
 		bool			sendpkt(INFO_PACKET &pkt);
 		bool			sendpkt(CONF_PACKET &pkt);
 		bool			sendpkt(DATA_PACKET &pkt);
+		void			readBytes(vector<uint8_t>& buffer, size_t count);
+		void			writeBytes(uint8_t* buffer, size_t count);
 
 		static void		createCheckSum(DATA_PACKET& pkt);
 };

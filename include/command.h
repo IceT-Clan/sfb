@@ -94,7 +94,7 @@ private:
 	*
 	*returns true when the file exists after the method returns
 	*/
-	bool	checkFileExists(string name);
+	bool	checkFileExists(string name, bool question);
 	void	list_files(vector<string>* files, const char* dirname);
 };
 
