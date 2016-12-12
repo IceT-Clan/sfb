@@ -2,12 +2,13 @@
 #include "command.h"
 
 int main(int argc, char** argv) {
-	Command cmd(argc, argv);
+	//Command cmd(argc, argv);
 	
-	/*cout << "PRESS A FANCY KEY TO SEND THE INFOPACKET\n";
+	cout << "PRESS A FANCY KEY TO SEND THE INFOPACKET\n";
 	system("Pause");
 	Network net;
-	net.init("COM1");
+	if (!net.init("COM1"))
+		cout << "failed to init network" << endl;
 	
 	INFO_PACKET pkt1;
 	pkt1.bytesnr = 23;
@@ -29,20 +30,20 @@ int main(int argc, char** argv) {
 	pkt4.bytes[7] = 27;
 	net.sendpkt(pkt4);
 	cout << pkt4.checksum << endl ;
-	system("Pause");*/
+	system("Pause");
 
-	// Print version
-	cout << "sfb version " << SFB_VERSION << endl;
+	//// Print version
+	//cout << "sfb version " << SFB_VERSION << endl;
 
-	// Read command
-	if (!cmd.read()) {
-		cout << "Command not found." << endl;
-	}
+	//// Read command
+	//if (!cmd.read()) {
+	//	cout << "Command not found." << endl;
+	//}
 
-	if (cmd.exec()) {
-		cout << "Executed successfully." << endl;
-	} else {
-		cout << "Could not execute." << endl;
-	}
+	//if (cmd.exec()) {
+	//	cout << "Executed successfully." << endl;
+	//} else {
+	//	cout << "Could not execute." << endl;
+	//}
 	return 0;
 }

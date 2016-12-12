@@ -85,7 +85,7 @@ bool Command::exec() {
 					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
 				return false;
 			}
-			return moveOrCopy(true);
+			return move();
 		case CMD_LS:
 			if (argc > 3) {
 				std::cerr << "Too many arguments given!" << endl <<
@@ -823,15 +823,20 @@ bool Command::moveOrCopy(bool move) {
 			return handleFile(sourcePath, targetPath, move);
 		}
 		else {				// Send source file
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, "", targetPath };
+			net->sendpkt(pkt);
 			return sendFile(sourcePath, move);
 		}
 	}
 	else {
 		if (isTargetHere) {	// Recieve file
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, "" };
+			net->sendpkt(pkt);
 			return recvFile(targetPath, move);
 		}
 		else {				// All files on other pc
 			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, targetPath };
+			net->sendpkt(pkt);
 			return true;
 		}
 	}

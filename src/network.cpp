@@ -74,13 +74,7 @@ bool Network::recv() {
 		vector<uint8_t> buffer;
 
 		// Wait until we received something
-		while (!serial->read(buffer, 1)) {
-			lock_guard<mutex> lock(sec);
-			if (!threadRunning) {
-				return true;
-			}
-			cout << "Huhu" << endl;
-		}
+		while (!serial->read(buffer, 1)) {}
 
 		cout << "Received something" << endl;
 		switch (buffer[0]) {
@@ -100,7 +94,7 @@ bool Network::recv() {
 		} break;
 		case INFO: {
 			buffer.clear();
-			serial->read(buffer, sizeof(size_t));
+			serial->read(buffer, sizeof(INFO_PACKET::bytesnr));
 			INFO_PACKET packet;
 			packet.bytesnr = *reinterpret_cast <size_t*> (&buffer[0]);
 			lock_guard<mutex> lock(sec);
