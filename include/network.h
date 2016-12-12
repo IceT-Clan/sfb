@@ -38,6 +38,8 @@ class Network
 
 		thread*			receive;
 		mutex			sec;
+
+		bool			threadRunning;
 	public:
 		Network();
 		~Network();

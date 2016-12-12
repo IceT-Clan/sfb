@@ -421,7 +421,7 @@ bool Command::removefile() {
 
 bool Command::checkFileExists(string name) {
 	ifstream target;
-	target.open(argv[3], ios_base::in | ios_base::binary);
+	target.open(name, ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
 		string error = strerror(errno);
 		if (error.compare("No such file or directory") == 0) {
@@ -430,24 +430,20 @@ bool Command::checkFileExists(string name) {
 	}
 	target.close();
 
-	vector<string> files;
-	list_files(&files, ".");
-	if(find(files.begin(), files.end(), name) == files.end()) {
-		// File already exists
-		cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
-		string input;
-		cin >> input;
-		if (input == "y" | input == "Y") {
+	// File already exists
+	cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
+	string input;
+	cin >> input;
+	if (input == "y" | input == "Y") {
+		//Delete file
+		if (std::remove(name.c_str()) != 0) {
+			perror("Error deleting the file");
 			return true;
 		}
+		return false;
 	}
 
-	 if (std::remove(name.c_str()) != 0) {
-	 	perror("Error deleting the file");
-	 	return true;
-	 }
-	 
-	return false;
+	return true;
 }
 
 #ifdef _WIN32
