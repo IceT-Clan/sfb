@@ -139,6 +139,17 @@ bool Network::recv() {
 			COUT("  Checksum: " << packet.checksum << endl);
 			dataPacketAvailable = true;
 		} break;
+		case MESSAGE: {
+			COUT("MSG received" << endl);
+			buffer.clear();
+			readBytes(buffer, sizeof(uint32_t));
+			MSG_PACKET packet;
+			packet.size = *reinterpret_cast <uint32_t*> (&buffer[0]);
+			lock_guard<mutex> lock(sec);
+			packet.msg = serial->read(packet.size);			
+			msgPacket = packet;
+			msgPacketAvailable = true;
+		} break;
 		default:
 			CERR( "An error occured!" << endl);
 			break;
@@ -183,6 +194,18 @@ INFO_PACKET Network::getinfopacket() {
 	return infoPacket;
 }
 
+MSG_PACKET Network::getmsgpacket()
+{
+#ifdef _WIN32
+	while (!getmsgPacketAvailable()) { _sleep(10); }
+#else
+	while (!getmsgPacketAvailable()) { sleep(10); }
+#endif
+	lock_guard<mutex> lock(sec);
+	msgPacketAvailable = false;
+	return msgPacket;
+}
+
 CONF_PACKET Network::getconfpacket() {
 #ifdef _WIN32
 	while (!getconfPacketAvailable()) { _sleep(10); }
@@ -225,6 +248,11 @@ bool Network::getinfoPacketAvailable() {
 	return infoPacketAvailable;
 }
 
+bool Network::getmsgPacketAvailable() {
+	lock_guard<mutex> lock(sec);
+	return msgPacketAvailable;
+}
+
 // SEND INFO
 bool Network::sendpkt(INFO_PACKET &pkt) {
 	sendraw(PACKETS::INFO);
@@ -251,6 +279,16 @@ bool Network::sendpkt(DATA_PACKET &pkt) {
 	writeBytes(pkt.bytes, 252);
 	sendraw(pkt.checksum);
 	COUT("SENT DATA_PACKET" <<endl);
+	return true;
+}
+
+bool Network::sendpkt(MSG_PACKET & pkt) {
+	sendraw(PACKETS::MESSAGE);
+	pkt.size = pkt.msg.size();
+	sendraw(pkt.size);
+	lock_guard<mutex> lock(sec);
+	serial->write(pkt.msg);
+	COUT("SENT MSG_PACKET" << endl);
 	return true;
 }
 

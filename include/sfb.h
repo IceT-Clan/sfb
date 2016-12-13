@@ -30,7 +30,8 @@ enum PACKETS : uint8_t {
 	REQUEST = 0,
 	INFO = 1,
 	CONF = 2,
-	DATA = 3
+	DATA = 3,
+	MESSAGE = 4
 };
 enum CONFIRMATION : uint8_t {
 	OK = 0,
@@ -59,10 +60,14 @@ typedef struct {
 
 // Answer packet structure
 typedef struct {
-	string		msg;
 	uint8_t		bytes[252];
 	uint32_t	checksum;
 } DATA_PACKET;
+
+typedef struct {
+	uint32_t	size;
+	string		msg;
+} MSG_PACKET;
 
 class Globals {
 public:

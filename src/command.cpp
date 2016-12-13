@@ -287,7 +287,8 @@ bool Command::move_b(REQ_PACKET& pkt) {
 bool Command::ls_b(REQ_PACKET& pkt) {
 	DIR *dir;
 	struct dirent *ent;
-	string msg;
+	stringstream msg;
+	string msg_la;
 
 	//Open directory stream
 	dir = opendir((pkt.path0).c_str());
@@ -295,7 +296,14 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf((char*)msg.c_str(), "%s ",ent->d_name);
+			switch (ent->d_type) {
+			case DT_DIR:
+				msg << ent->d_name << "\\  ";
+				break;
+			default:
+				msg << ent->d_name << "  ";
+				break;
+			}
 		}
 
 		closedir(dir);
@@ -307,18 +315,19 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 		exit(EXIT_FAILURE);
 	}
 
-	DATA_PACKET asw_pkt;
-	asw_pkt.msg = msg;
+	msg_la = msg.str();
+	MSG_PACKET asw_pkt;
+	asw_pkt.msg = msg_la;
 
 	net->sendpkt(asw_pkt);
-
 	return true;
 }
 
 bool Command::la_b(REQ_PACKET& pkt) {
 	DIR *dir;
 	struct dirent *ent;
-	char msg[50000];
+	stringstream msg;
+	string msg_la;
 
 	//Open directory stream
 	dir = opendir((pkt.path0).c_str());
@@ -326,7 +335,14 @@ bool Command::la_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf(msg, "%s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_name);
+			switch (ent->d_type) {
+			case DT_DIR:
+				msg << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << "\\" << endl;
+				break;
+			default:
+				msg << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+				break;
+			}
 		}
 
 		closedir(dir);
@@ -337,9 +353,9 @@ bool Command::la_b(REQ_PACKET& pkt) {
 		COUT("Cannot open directory " << (pkt.path0).c_str() << endl);
 		exit(EXIT_FAILURE);
 	}
-
-	DATA_PACKET asw_pkt;
-	asw_pkt.msg = msg;
+	msg_la = msg.str();
+	MSG_PACKET asw_pkt;
+	asw_pkt.msg = msg_la;
 
 	net->sendpkt(asw_pkt);
 	return true;
@@ -370,7 +386,7 @@ bool Command::pwd_b(REQ_PACKET& pkt) {
 	string::size_type pos = string(buffer).find_last_of("\\/");
 	string msg = string(buffer).substr(0, pos);
 
-	DATA_PACKET asw_pkt;
+	MSG_PACKET asw_pkt;
 	asw_pkt.msg = msg;
 
 	net->sendpkt(asw_pkt);
@@ -517,9 +533,18 @@ bool Command::list() {
 		}
 	}
 
-	else if (net->getdataPacketAvailable()){
-		DATA_PACKET data = net->getdatapacket();
-		COUT(data.msg);
+	else {
+		REQ_PACKET list;
+
+		//Build listall packet
+		list.cmd = CMD_LS;
+		list.path0 = argv[2];
+
+		//send packet
+		net->sendpkt(list);
+
+		MSG_PACKET msg = net->getmsgpacket();
+		COUT(msg.msg);
 	}
 
 #endif
@@ -583,10 +608,8 @@ bool Command::listall() {
 		//send packet
 		net->sendpkt(listall);
 
-		if (net->getdataPacketAvailable()) {
-			DATA_PACKET data = net->getdatapacket();
-			COUT(data.msg);
-		}
+		MSG_PACKET msg = net->getmsgpacket();
+		COUT(msg.msg);		
 	}
 #else
 	// TODO
@@ -691,6 +714,8 @@ bool Command::removefile() {
 	//send packet
 	net->sendpkt(removefile);
 
+	CONF_PACKET conf = net->getconfpacket();
+	COUT(conf.confirmation);
 	return true;
 }
 
