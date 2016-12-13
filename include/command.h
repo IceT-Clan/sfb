@@ -45,8 +45,6 @@ private:
 		{"list", CMD_LS},
 		{"la", CMD_LA},
 		{"listall", CMD_LA},
-		{"cd", CMD_CD},
-		{"changedirectory", CMD_CD},
 		{"pwd", CMD_PWD},
 		{"printworkingdirectory", CMD_PWD},
 		{"mkdir", CMD_MKDIR},
@@ -82,7 +80,6 @@ private:
 	bool	handleFile(string sourceP, string targetP, bool move);	// Move or copies file on this pc
 	bool	list();
 	bool	listall();
-	bool	changedirectory();
 	bool	printworkingdirectory();
 	bool	makedirectory();
 	bool	makefile();

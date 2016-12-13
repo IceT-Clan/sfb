@@ -96,18 +96,6 @@ bool Command::exec() {
 					"Usage: " << argv[0] << " la [path]" << endl);
 			}
 			return listall();
-		case CMD_CD:
-			if (argc < 3) {
-				CERR( "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl);
-				return false;
-			}
-			if (argc > 3) {
-				CERR( "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl);
-				return false;
-			}
-			return changedirectory();
 		case CMD_PWD:
 			if (argc > 2) {
 				CERR( "Too many arguments given!" << endl <<
@@ -126,6 +114,7 @@ bool Command::exec() {
 					"Usage: " << argv[0] << " mkdir <path>" << endl);
 				return false;
 			}
+			return makedirectory();
 		case CMD_TOUCH:
 			if (argc < 3) {
 				CERR( "Not enough arguments were given!" << endl <<
@@ -137,6 +126,7 @@ bool Command::exec() {
 					"Usage: " << argv[0] << " touch <path>" << endl);
 				return false;
 			}
+			return makefile();
 		case CMD_RM:
 			if (argc < 3) {
 				CERR( "Not enough arguments were given!" << endl <<
@@ -148,6 +138,7 @@ bool Command::exec() {
 					"Usage: " << argv[0] << " rm <path>" << endl);
 				return false;
 			}
+			return removefile();
 		default:
 			// Something went really wrong...
 			return false;
@@ -159,7 +150,7 @@ bool Command::exec() {
 bool Command::print_help() {
 	COUT(endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
-		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm <path>]" << endl <<
+		"[ls [path]] " << "[la [path]] " << "[pwd] " << "[mkdir <path>] " << "[touch <path>] " << "[rm <path>]" << endl <<
 		"Options:" << endl <<
 		"help   | help                      Print this help" << endl <<
 		"start  | start                     Start background deamon to establish a connection" << endl <<
@@ -168,7 +159,6 @@ bool Command::print_help() {
 		"mv     | move                      Move or rename files or directories" << endl <<
 		"ls     | list                      List information about files" << endl <<
 		"la     | list all                  List more specific informations about (hidden) files" << endl <<
-		"cd     | change directory          Change the current working directory to a specific Folder" << endl <<
 		"pwd    | print working directory   Print the current directory" << endl <<
 		"mkdir  | make directory            Create a directory at the given path" << endl <<
 		"touch  | create file               Create a file at the given path" << endl <<
@@ -410,7 +400,6 @@ bool Command::rm_b(REQ_PACKET& pkt) {
 
 bool Command::makefile_b(REQ_PACKET& pkt) {
 	string command, option;
-
 	option = (pkt.path0).c_str();
 #ifdef _WIN32
 	command = "copy nul > " + option;
@@ -550,7 +539,6 @@ bool Command::list() {
 }
 
 bool Command::listall() {
-#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
@@ -609,27 +597,6 @@ bool Command::listall() {
 		MSG_PACKET msg = net->getmsgpacket();
 		COUT(msg.msg);		
 	}
-#else
-	// TODO
-#endif
-	return true;
-}
-
-bool Command::changedirectory() {
-	if (argv[2][0] == ':') {
-		//Change local directory
-		_chdir(argv[2] + 1);
-	}
-
-	REQ_PACKET changedirectory;
-
-	//Build changedirectory packet
-	changedirectory.cmd =			CMD_CD;
-	changedirectory.path0 =			argv[2];
-
-	//send packet
-	net->sendpkt(changedirectory);
-
 	return true;
 }
 
@@ -641,6 +608,9 @@ bool Command::printworkingdirectory() {
 
 	//send packet
 	net->sendpkt(pwd);
+
+	MSG_PACKET asw_pkt = net->getmsgpacket();
+	COUT(asw_pkt.msg << endl);
 
 	return true;
 }
@@ -668,8 +638,8 @@ bool Command::makedirectory() {
 
 bool Command::makefile() {
 	string command, option;
-
 	if (argv[2][0] == ':') {
+		checkFileExists(option, true);
 		option = argv[2] + 1;
 #ifdef _WIN32
 		command = "copy nul > " + option;
@@ -677,8 +647,9 @@ bool Command::makefile() {
 		command = "touch " + option;
 #endif
 		system((const char*)command.c_str());
+		return true;
 	}
-
+	
 	REQ_PACKET makefile;
 
 	//Build makefile packet
