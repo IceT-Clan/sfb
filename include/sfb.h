@@ -3,6 +3,7 @@
 #define SFB_H
 #include <string>
 #include <iostream>
+#include <mutex>
 
 using namespace std;
 
@@ -19,7 +20,6 @@ enum COMMANDS {
 	CMD_MOVE,
 	CMD_LS,
 	CMD_LA,
-	CMD_CD,
 	CMD_PWD,
 	CMD_MKDIR,
 	CMD_TOUCH,
@@ -29,7 +29,15 @@ enum PACKETS : uint8_t {
 	REQUEST = 0,
 	INFO = 1,
 	CONF = 2,
-	DATA = 3
+	DATA = 3,
+	MESSAGE = 4
+};
+enum CONFIRMATION : uint8_t {
+	OK = 0,
+	NOT_ENOUGH_SPACE = 1,
+	FILE_EXISTS = 2,
+	DELETE_FILE,
+	NOT_DELETE_FILE
 };
 
 // Request packet structure
@@ -41,19 +49,29 @@ typedef struct {
 
 // Data Info Answer
 typedef struct {
-	size_t		bytesnr;
+	unsigned long long bytesnr;
 } INFO_PACKET;
 
 // Send? 
 typedef struct {
-	bool		confirmation;
+	CONFIRMATION	confirmation;
 } CONF_PACKET;
 
 // Answer packet structure
 typedef struct {
-	string		msg;
 	uint8_t		bytes[252];
 	uint32_t	checksum;
 } DATA_PACKET;
 
+typedef struct {
+	uint32_t	size;
+	string		msg;
+} MSG_PACKET;
+
+class Globals {
+public:
+	static mutex g_coutMutex;
+#define COUT(x) {lock_guard<mutex> lock(Globals::g_coutMutex); cout << x;}
+#define CERR(x) {lock_guard<mutex> lock(Globals::g_coutMutex); cerr << x;}
+};
 #endif /* SFB_H */

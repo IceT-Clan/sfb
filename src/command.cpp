@@ -10,8 +10,8 @@ Command::Command(int argc, char** argv) {
 	this->net = new Network();
 
 	// Check if default port is available
-	if (!net->init()) {
-		cerr << "Failed to init network" << endl;
+	if (!net->init("COM2")) {
+		CERR( "Failed to init network" << endl);
 	}
 
 }
@@ -51,8 +51,6 @@ bool Command::read() {
 }
 
 bool Command::exec() {
-	struct dirent *entry;
-
 	// Decide which command should be executed
 	switch (cmd) {
 		case CMD_NONE:
@@ -64,92 +62,83 @@ bool Command::exec() {
 			return start();
 		case CMD_COPY:
 			if (argc < 4) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl);
 				return false;
 			}
 			if (argc > 4) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " cp <path> <destination>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " cp <path> <destination>" << endl);
 				return false;
 			}
-			return copy();
+			return moveOrCopy(false);
 		case CMD_MOVE:
 			if (argc < 4) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl);
 				return false;
 			}
 			if (argc > 4) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " mv <path> <destination>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mv <path> <destination>" << endl);
 				return false;
 			}
-			return move();
+			return moveOrCopy(true);
 		case CMD_LS:
 			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " ls [path]" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " ls [path]" << endl);
 			}
 			return list();
 		case CMD_LA:
 			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " la [path]" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " la [path]" << endl);
 			}
 			return listall();
-		case CMD_CD:
-			if (argc < 3) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl;
-				return false;
-			}
-			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " cd <destination>" << endl;
-				return false;
-			}
-			return changedirectory();
 		case CMD_PWD:
 			if (argc > 2) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " pwd" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " pwd" << endl);
 				return false;
 			}
 			return printworkingdirectory();
 		case CMD_MKDIR:
 			if (argc < 3) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " mkdir <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " mkdir <path>" << endl);
 				return false;
 			}
+			return makedirectory();
 		case CMD_TOUCH:
 			if (argc < 3) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " touch <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " touch <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " touch <path>" << endl);
 				return false;
 			}
+			return makefile();
 		case CMD_RM:
 			if (argc < 3) {
-				cerr << "Not enough arguments were given!" << endl <<
-					"Usage: " << argv[0] << " rm <path>" << endl;
+				CERR( "Not enough arguments were given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl);
 				return false;
 			}
 			if (argc > 3) {
-				cerr << "Too many arguments given!" << endl <<
-					"Usage: " << argv[0] << " rm <path>" << endl;
+				CERR( "Too many arguments given!" << endl <<
+					"Usage: " << argv[0] << " rm <path>" << endl);
 				return false;
 			}
+			return removefile();
 		default:
 			// Something went really wrong...
 			return false;
@@ -159,9 +148,9 @@ bool Command::exec() {
 }
 
 bool Command::print_help() {
-	cout << endl << "Usage: " << argv[0] << endl << 
+	COUT(endl << "Usage: " << argv[0] << endl << 
 		"[help] " << "[start <port>] " << "[cp <path> <destination>] " << "[mv <path> <destination>]" << endl << 
-		"[ls [path]] " << "[la [path]] " << "[cd <path>] " << "[pwd]" << "[mkdir <path>]" << "[touch <path>]" << "[rm <path>]" << endl <<
+		"[ls [path]] " << "[la [path]] " << "[pwd] " << "[mkdir <path>] " << "[touch <path>] " << "[rm <path>]" << endl <<
 		"Options:" << endl <<
 		"help   | help                      Print this help" << endl <<
 		"start  | start                     Start background deamon to establish a connection" << endl <<
@@ -170,12 +159,11 @@ bool Command::print_help() {
 		"mv     | move                      Move or rename files or directories" << endl <<
 		"ls     | list                      List information about files" << endl <<
 		"la     | list all                  List more specific informations about (hidden) files" << endl <<
-		"cd     | change directory          Change the current working directory to a specific Folder" << endl <<
 		"pwd    | print working directory   Print the current directory" << endl <<
 		"mkdir  | make directory            Create a directory at the given path" << endl <<
 		"touch  | create file               Create a file at the given path" << endl <<
 		"rm     | remove file               Remove a file or directory" << endl << endl << 
-		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl;
+		"More informations on https://github.com/IceT-Clan/sfb or visit us on https://icet-clan.de/" << endl);
 
 	return true;
 }
@@ -196,7 +184,7 @@ bool Command::start() {
 			hideConsole = true;
 		} else {
 			if (!port.empty()) {
-				cerr << "Invalid arguments" << endl;
+				CERR( "Invalid arguments" << endl);
 				return false;
 			}
 			port = arg;
@@ -219,14 +207,17 @@ bool Command::start() {
 #endif
 	}
 
-	cout << "Start listening for commands..." << endl;
+	COUT("Start listening for commands..." << endl);
 	while (true) {
 		bool result = false;
 		while (!net->getrequestPacketAvailable()) {}
 		REQ_PACKET pkt =  net->getrequestpacket();
 		switch (pkt.cmd) {
 		case CMD_MOVE:
-			result = move_b(pkt);
+			result = moveOrCopy_b(pkt, true);
+			break;
+		case CMD_COPY:
+			result = moveOrCopy_b(pkt, false);
 			break;
 		case CMD_LS:
 			result = ls_b(pkt);
@@ -247,11 +238,11 @@ bool Command::start() {
 			result = makefile_b(pkt);
 			break;
 		default:
-			cerr << "Unknown command!" << endl;
+			CERR( "Unknown command!" << endl);
 			break;
 		}
-		if(result)	cout << "Executed successfully." << endl;
-		else		cout << "Could not execute." << endl;
+		if(result)	COUT("Executed successfully." << endl)
+		else		COUT("Could not execute." << endl);
 	}
 }
 
@@ -259,12 +250,12 @@ bool Command::move_b(REQ_PACKET& pkt) {
 	if (pkt.path0 != "" && pkt.path1 != "") {
 		ifstream source(pkt.path0, ios::binary | ios::in);
 		if (!source.is_open()) {
-			cerr << "Can't open source file!" << endl;
+			CERR( "Can't open source file!" << endl);
 			return false;
 		}
 		ofstream target(pkt.path1, ios::binary | ios::out | ios::trunc);
 		if (!target.is_open()) {
-			cerr << "Can't open target file!" << endl;
+			CERR( "Can't open target file!" << endl);
 			return false;
 		}
 
@@ -273,7 +264,7 @@ bool Command::move_b(REQ_PACKET& pkt) {
 
 		// Remove source
 		if (remove(pkt.path0.c_str()) != 0) {
-			cerr << "Could not delete file(s)." << endl;
+			CERR( "Could not delete file(s)." << endl);
 			return true;
 		}
 	}
@@ -284,7 +275,8 @@ bool Command::move_b(REQ_PACKET& pkt) {
 bool Command::ls_b(REQ_PACKET& pkt) {
 	DIR *dir;
 	struct dirent *ent;
-	string msg;
+	stringstream msg;
+	string msg_la;
 
 	//Open directory stream
 	dir = opendir((pkt.path0).c_str());
@@ -292,7 +284,14 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf((char*)msg.c_str(), "%s ",ent->d_name);
+			switch (ent->d_type) {
+			case DT_DIR:
+				msg << ent->d_name << "\\  ";
+				break;
+			default:
+				msg << ent->d_name << "  ";
+				break;
+			}
 		}
 
 		closedir(dir);
@@ -300,22 +299,23 @@ bool Command::ls_b(REQ_PACKET& pkt) {
 	}
 	else {
 		//Could not open directory
-		cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		COUT("Cannot open directory " << (pkt.path0).c_str() << endl);
 		exit(EXIT_FAILURE);
 	}
 
-	DATA_PACKET asw_pkt;
-	asw_pkt.msg = msg;
+	msg_la = msg.str();
+	MSG_PACKET asw_pkt;
+	asw_pkt.msg = msg_la;
 
 	net->sendpkt(asw_pkt);
-
 	return true;
 }
 
 bool Command::la_b(REQ_PACKET& pkt) {
 	DIR *dir;
 	struct dirent *ent;
-	string msg;
+	stringstream msg;
+	string msg_la;
 
 	//Open directory stream
 	dir = opendir((pkt.path0).c_str());
@@ -323,7 +323,14 @@ bool Command::la_b(REQ_PACKET& pkt) {
 
 		//Print all files and directories within the directory
 		while ((ent = readdir(dir)) != NULL) {
-			sprintf((char*)msg.c_str(), "%s %s\t%s\n", ent->d_reclen, ent->d_type, ent->d_name);
+			switch (ent->d_type) {
+			case DT_DIR:
+				msg << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << "\\" << endl;
+				break;
+			default:
+				msg << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+				break;
+			}
 		}
 
 		closedir(dir);
@@ -331,12 +338,12 @@ bool Command::la_b(REQ_PACKET& pkt) {
 	}
 	else {
 		//Could not open directory
-		cout << "Cannot open directory " << (pkt.path0).c_str() << endl;
+		COUT("Cannot open directory " << (pkt.path0).c_str() << endl);
 		exit(EXIT_FAILURE);
 	}
-
-	DATA_PACKET asw_pkt;
-	asw_pkt.msg = msg;
+	msg_la = msg.str();
+	MSG_PACKET asw_pkt;
+	asw_pkt.msg = msg_la;
 
 	net->sendpkt(asw_pkt);
 	return true;
@@ -350,7 +357,7 @@ bool Command::mkdir_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -367,7 +374,7 @@ bool Command::pwd_b(REQ_PACKET& pkt) {
 	string::size_type pos = string(buffer).find_last_of("\\/");
 	string msg = string(buffer).substr(0, pos);
 
-	DATA_PACKET asw_pkt;
+	MSG_PACKET asw_pkt;
 	asw_pkt.msg = msg;
 
 	net->sendpkt(asw_pkt);
@@ -385,7 +392,7 @@ bool Command::rm_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -393,7 +400,6 @@ bool Command::rm_b(REQ_PACKET& pkt) {
 
 bool Command::makefile_b(REQ_PACKET& pkt) {
 	string command, option;
-
 	option = (pkt.path0).c_str();
 #ifdef _WIN32
 	command = "copy nul > " + option;
@@ -403,7 +409,7 @@ bool Command::makefile_b(REQ_PACKET& pkt) {
 	system((const char*)command.c_str());
 
 	CONF_PACKET conf;
-	conf.confirmation = true;
+	conf.confirmation = CONFIRMATION::OK;
 	net->sendpkt(conf);
 
 	return true;
@@ -450,7 +456,7 @@ bool Command::move() {
 	}
 
 	// Test target file
-	if (checkFileExists(argv[3])) return false;
+	if (checkFileExists(argv[3], true)) return false;
 
 	//files
 	ifstream source;
@@ -459,11 +465,11 @@ bool Command::move() {
 	//Open files
 	source.open(argv[2], ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		cerr << "Error opening source: " << strerror(errno) << endl;
+		OutErrror("Error opening source");
 	}
 	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		cerr << "Error opening target: " << strerror(errno) << endl;
+		OutErrror("Error opening target");
 	}
 	return true;
 }
@@ -484,23 +490,23 @@ bool Command::list() {
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 					break;
 
 				case DT_DIR:
 					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
-					cout << ent->d_name << "/ ";
+					COUT(ent->d_name << "/ ");
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
-					cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 					break;
 
 				default:
-					cout << ent->d_name << " ";
+					COUT(ent->d_name << " ");
 				}
 			}
 
@@ -509,14 +515,23 @@ bool Command::list() {
 		}
 		else {
 			//Could not open directory
-			cout << "Cannot open directory " << argv[2] + 1 << endl;
+			COUT("Cannot open directory " << argv[2] + 1 << endl);
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	else if (net->getdataPacketAvailable()){
-		DATA_PACKET data = net->getdatapacket();
-		cout << data.msg;
+	else {
+		REQ_PACKET list;
+
+		//Build listall packet
+		list.cmd = CMD_LS;
+		list.path0 = argv[2];
+
+		//send packet
+		net->sendpkt(list);
+
+		MSG_PACKET msg = net->getmsgpacket();
+		COUT(msg.msg);
 	}
 
 #endif
@@ -524,7 +539,6 @@ bool Command::list() {
 }
 
 bool Command::listall() {
-#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (argv[2][0] == ':') {
@@ -539,24 +553,24 @@ bool Command::listall() {
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
 				case DT_REG:
-					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 					break;
 
 				case DT_DIR:
-					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t";
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t");
 					//Set font color blue
 					SetConsoleTextAttribute(hConsole, 1);
-					cout << ent->d_name << "/" << endl;
+					COUT(ent->d_name << "/" << endl);
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
 					break;
 
 				case DT_LNK:
-					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 					break;
 
 				default:
-					cout << ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl;
+					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 				}
 			}
 
@@ -565,7 +579,7 @@ bool Command::listall() {
 		}
 		else {
 			//Could not open directory
-			cout << "Cannot open directory " << argv[2] + 1 << endl;
+			COUT("Cannot open directory " << argv[2] + 1 << endl);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -574,38 +588,15 @@ bool Command::listall() {
 		REQ_PACKET listall;
 
 		//Build listall packet
-		listall.cmd = CMD_CD;
+		listall.cmd = CMD_LA;
 		listall.path0 = argv[2];
 
 		//send packet
 		net->sendpkt(listall);
 
-		if (net->getdataPacketAvailable()) {
-			DATA_PACKET data = net->getdatapacket();
-			cout << data.msg;
-		}
+		MSG_PACKET msg = net->getmsgpacket();
+		COUT(msg.msg);		
 	}
-#else
-	// TODO
-#endif
-	return true;
-}
-
-bool Command::changedirectory() {
-	if (argv[2][0] == ':') {
-		//Change local directory
-		chdir(argv[2] + 1);
-	}
-
-	REQ_PACKET changedirectory;
-
-	//Build changedirectory packet
-	changedirectory.cmd =			CMD_CD;
-	changedirectory.path0 =			argv[2];
-
-	//send packet
-	net->sendpkt(changedirectory);
-
 	return true;
 }
 
@@ -617,6 +608,9 @@ bool Command::printworkingdirectory() {
 
 	//send packet
 	net->sendpkt(pwd);
+
+	MSG_PACKET asw_pkt = net->getmsgpacket();
+	COUT(asw_pkt.msg << endl);
 
 	return true;
 }
@@ -644,8 +638,8 @@ bool Command::makedirectory() {
 
 bool Command::makefile() {
 	string command, option;
-
 	if (argv[2][0] == ':') {
+		checkFileExists(option, true);
 		option = argv[2] + 1;
 #ifdef _WIN32
 		command = "copy nul > " + option;
@@ -653,8 +647,9 @@ bool Command::makefile() {
 		command = "touch " + option;
 #endif
 		system((const char*)command.c_str());
+		return true;
 	}
-
+	
 	REQ_PACKET makefile;
 
 	//Build makefile packet
@@ -688,38 +683,44 @@ bool Command::removefile() {
 	//send packet
 	net->sendpkt(removefile);
 
+	CONF_PACKET conf = net->getconfpacket();
+	COUT(conf.confirmation);
 	return true;
 }
 
-bool Command::checkFileExists(string name) {
+bool Command::checkFileExists(string name, bool question) {
 	ifstream target;
-	target.open(argv[3], ios_base::in | ios_base::binary);
+	target.open(name, ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
-		string error = strerror(errno);
+		char errorMsg[64];
+		strerror_s(errorMsg, 64, errno);
+		string error(errorMsg);
 		if (error.compare("No such file or directory") == 0) {
 			return false;
 		}
 	}
 	target.close();
 
-	vector<string> files;
-	list_files(&files, ".");
-	if(find(files.begin(), files.end(), name) == files.end()) {
-		// File already exists
-		cout << "File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl;
+	// File already exists
+	if (question) {
+		COUT("File '" << name << "' with the same name already exists! do you want to override it? [y/N]" << endl);
 		string input;
 		cin >> input;
 		if (input == "y" | input == "Y") {
-			return true;
+			//Delete file
+			if (std::remove(name.c_str()) != 0) {
+				perror("Error deleting the file");
+				return true;
+			}
+			return false;
 		}
 	}
-
-	return false;
+	return true;
 }
 
 #ifdef _WIN32
 bool Command::startInBackground(string port, bool hideConsole) {
-	LPTSTR lpCommandLine = strdup(("sfb.exe start " + port + (hideConsole ? " -h" : "")).c_str());
+	LPTSTR lpCommandLine = _strdup(("sfb.exe start " + port + (hideConsole ? " -h" : "")).c_str());
 
 	STARTUPINFO lpStartupInfo;
 	PROCESS_INFORMATION lpProcessInfo;
@@ -729,7 +730,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 
 	/* Create the process */
 	if (!CreateProcess(NULL, lpCommandLine, NULL, NULL, false, CREATE_NEW_CONSOLE, NULL, NULL, &lpStartupInfo, &lpProcessInfo)) {
-		cerr << "Failed to create background process" << endl;
+		CERR( "Failed to create background process" << endl);
 		return false;
 	}
 
@@ -747,14 +748,14 @@ bool Command::startInBackground(string port, bool hideConsole) {
 
 	switch (pid) {
 	case -1: // Error
-		cerr << "Uh-Oh! fork() failed.\n";
+		CERR( "Uh-Oh! fork() failed.\n";
 		exit(1);
 	case 0: // Child process
 		execl(programPath.c_str(), NULL); // Execute the program
-		cerr << "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
+		CERR( "Uh-Oh! execl() failed!"; // execl doesn't return unless there's an error
 		exit(1);
 	default: // Parent process
-		cout << "Process created with pid " << pid << "\n";
+		COUT("Process created with pid " << pid << "\n";
 		int status;
 
 		while (!WIFEXITED(status)) {
@@ -765,7 +766,7 @@ bool Command::startInBackground(string port, bool hideConsole) {
 #endif
 		}
 
-		cout << "Process exited with " << WEXITSTATUS(status) << "\n";
+		COUT("Process exited with " << WEXITSTATUS(status) << "\n";
 
 		return 0;
 	}
@@ -791,7 +792,272 @@ void Command::list_files(vector<string>* files, const char* dirname) {
 		closedir(dir);
     } else {
         // Could not open directory
-        cerr << "Cannot open directory " << dirname << endl;
+        CERR( "Cannot open directory " << dirname << endl);
     }
 	return;
+}
+
+void Command::OutErrror(string err) {
+	char errMsg[64];
+	if (strerror_s(errMsg, 64, errno) != 0) {
+		CERR("[Command-Error]" << err << ": " << "unknown error" << endl)
+	}
+	else {
+		CERR("[Command-Error]" << err << ": " << errMsg << endl);
+	}
+}
+
+bool Command::moveOrCopy(bool move) {
+	//Paths
+	string sourcePath(argv[2]);
+	string targetPath(argv[3]);
+
+	bool isSourceHere = false;
+	bool isTargetHere = false;
+
+	//Test for and remove ':'
+	if (sourcePath[0] == ':') {
+		isSourceHere = true;
+		sourcePath.erase(0, 1);
+	}
+	if (targetPath[0] == ':') {
+		isTargetHere = true;
+		targetPath.erase(0, 1);
+	}
+	
+	if (isSourceHere) {
+		if (isTargetHere) {	// All files on this pc
+			return handleFile(sourcePath, targetPath, move);
+		}
+		else {				// Send source file
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, "", targetPath };
+			net->sendpkt(pkt);
+			return sendFile(sourcePath, move);
+		}
+	}
+	else {
+		if (isTargetHere) {	// Recieve file
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, "" };
+			net->sendpkt(pkt);
+			return recvFile(targetPath, move);
+		}
+		else {				// All files on other pc
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, targetPath };
+			net->sendpkt(pkt);
+			return true;
+		}
+	}
+
+}
+
+bool Command::moveOrCopy_b(REQ_PACKET& pkt, bool move) {
+	bool isSourceHere = pkt.path0 != "";
+	bool isTargetHere = pkt.path1 != "";
+
+	if (isSourceHere) {
+		if (isTargetHere) {	// All files on this pc
+			return handleFile(pkt.path0, pkt.path1, move);
+		}
+		else {				// Send source file
+			return sendFile(pkt.path0, move);
+		}
+	}
+	else {
+		if (isTargetHere) {	// Recieve file
+			return recvFile(pkt.path1, move);
+		}
+		else {				// All files on other pc
+			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, pkt.path0, pkt.path1 };
+			return true;
+		}
+	}
+}
+
+bool Command::sendFile(string path, bool move) {
+	//file
+	ifstream source;
+
+	//Open file
+	source.open(path, ios_base::in | ios_base::binary);
+	if (!source.is_open()) {
+		OutErrror("Error opening source");
+		return false;
+	}
+
+	// Send file size
+	INFO_PACKET iPkt;
+	source.seekg(0, std::ios_base::end);
+	iPkt.bytesnr = source.tellg();
+	source.seekg(0, std::ios_base::beg);
+	net->sendpkt(iPkt);
+
+	// Receive confirmation
+	CONF_PACKET cPkt = net->getconfpacket();
+	if (cPkt.confirmation != CONFIRMATION::OK) {
+		if ((cPkt.confirmation & CONFIRMATION::FILE_EXISTS) != 0) {
+			COUT("File with the same name already exists! do you want to override it? [y/N]" << endl);
+			string input;
+			cin >> input;
+			CONF_PACKET cPkt;
+			if (input == "y" | input == "Y") {
+				cPkt.confirmation = CONFIRMATION::DELETE_FILE;
+				net->sendpkt(cPkt);
+			}
+			else {
+				cPkt.confirmation = CONFIRMATION::NOT_DELETE_FILE;
+				net->sendpkt(cPkt);
+				return true;
+			}
+
+		}
+		if ((cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE) != 0) {
+			CERR("Connected computer denied moving the file: Not enough space ;)" << endl);
+			return false;
+		}
+	}
+	
+	DATA_PACKET dPkt;
+	while (!source.eof()) {
+		source.read(reinterpret_cast<char*>(dPkt.bytes), 252);
+		if (!source) break;
+		net->sendpkt(dPkt);
+	}
+	for (size_t i = static_cast<size_t>(source.gcount()); i < 252; i++)
+		dPkt.bytes[i] = '\0';
+	net->sendpkt(dPkt);
+
+	source.close();
+
+	// Remove source
+	if (move) {
+		if (remove(path.c_str()) != 0) {
+			OutErrror("Could not delete source file");
+			return true;
+		}
+	}
+
+	return true;
+}
+
+bool Command::recvFile(string path, bool move) {
+	//file
+	ofstream target;
+
+	CONF_PACKET cPkt = { CONFIRMATION::OK };
+
+	// Test target file
+	bool isFileExisting = false;
+	if (checkFileExists(path, false)) {
+		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::FILE_EXISTS);
+		isFileExisting = true;
+	}
+	//Open file
+	target.open(path, ios_base::out | ios_base::binary);
+	if (!target.is_open()) {
+		OutErrror("Error opening target");
+		return false;
+	}
+
+	INFO_PACKET iPkt = net->getinfopacket();
+	unsigned long long freeSpace;
+#ifdef _WIN32
+	ULARGE_INTEGER li;
+	if (!GetDiskFreeSpaceEx(path.substr(0, 3).c_str(), &li, NULL, NULL)) {
+		// https://msdn.microsoft.com/de-de/library/windows/desktop/ms680582(v=vs.85).aspx
+		LPVOID lpMsgBuf;
+		DWORD dw = GetLastError();
+
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+			dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+		CERR( "Error getting free disc space: " << lpMsgBuf << endl);
+		LocalFree(lpMsgBuf);
+		target.close();
+		return false;
+	}
+	freeSpace = li.QuadPart;
+#else
+	static_assert(true, "Not implemenmted: Linux free disc space function");
+#endif
+
+	if(freeSpace < iPkt.bytesnr)
+		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::NOT_ENOUGH_SPACE);
+	net->sendpkt(cPkt);
+	if (cPkt.confirmation != CONFIRMATION::OK) {
+		if (isFileExisting) {
+			cPkt = net->getconfpacket();
+			if (cPkt.confirmation == CONFIRMATION::DELETE_FILE) {
+				target.close();
+				if (remove(path.c_str()) != 0) {
+					OutErrror("Could not delete file");
+					return false;
+				}
+				target.open(path, ios_base::out | ios_base::binary);
+				if (!target.is_open()) {
+					OutErrror("Error opening target");
+					return false;
+				}
+			}
+			else {
+				target.close();
+				return true;
+			}
+		}
+		else {
+			target.close();
+			return false;
+		}
+	}
+	DATA_PACKET dPkt;
+	unsigned long long packetCount = iPkt.bytesnr / 252ULL + iPkt.bytesnr % 252ULL ? 1 : 0;
+	unsigned long long neededBytes = iPkt.bytesnr;
+	unsigned long long packet = 0ULL;
+	while (packet < packetCount) {
+		dPkt = net->getdatapacket();
+		size_t recievedCheckSum = dPkt.checksum;
+		Network::createCheckSum(dPkt);
+		if (recievedCheckSum != dPkt.checksum) {
+			CERR( "Error on sending! Packet " << packet << "broke" << endl);
+			target.close();
+			return false;
+		}
+		target.write(reinterpret_cast<char*>(dPkt.bytes), neededBytes > 252 ? 252 : neededBytes);
+		neededBytes -= 252;
+		packet++;
+	}
+
+	return true;
+}
+
+bool Command::handleFile(string sourceP, string targetP, bool move) {
+	//files
+	ifstream source;
+	ofstream target;
+
+	//Open files
+	source.open(sourceP, ios_base::in | ios_base::binary);
+	if (!source.is_open()) {
+		OutErrror("Error opening source");
+		return false;
+	}
+	// Test target file
+	if (checkFileExists(targetP, true)) {
+		source.close();
+		return false;
+	}
+	target.open(targetP, ios_base::out | ios_base::binary);
+	if (!target.is_open()) {
+		OutErrror("Error opening target");
+		return false;
+	}
+
+	// Copy source to target
+	target << source.rdbuf();
+
+	// Remove source
+	if (move) {
+		if (remove(targetP.c_str()) != 0) {
+			CERR( "Could not delete source file." << endl);
+		}
+	}
+	return true;
 }

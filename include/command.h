@@ -9,7 +9,6 @@
 #include "serial/serial.h"
 #include "network.h"
 #ifdef _WIN32
-	#include <Windows.h>
 	#include "dirent.h"
 	#include "direct.h"
 #else
@@ -46,8 +45,6 @@ private:
 		{"list", CMD_LS},
 		{"la", CMD_LA},
 		{"listall", CMD_LA},
-		{"cd", CMD_CD},
-		{"changedirectory", CMD_CD},
 		{"pwd", CMD_PWD},
 		{"printworkingdirectory", CMD_PWD},
 		{"mkdir", CMD_MKDIR},
@@ -76,9 +73,13 @@ private:
 	bool	pwd_b(REQ_PACKET & pkt);
 	bool	rm_b(REQ_PACKET & pkt);
 	bool	makefile_b(REQ_PACKET & pkt);
+	bool	moveOrCopy(bool move);
+	bool	moveOrCopy_b(REQ_PACKET& pkt, bool move);
+	bool	sendFile(string path, bool move);	// Move or copies file from this pc to other pc
+	bool	recvFile(string path, bool move);	// Move or copies file from other pc to this pc
+	bool	handleFile(string sourceP, string targetP, bool move);	// Move or copies file on this pc
 	bool	list();
 	bool	listall();
-	bool	changedirectory();
 	bool	printworkingdirectory();
 	bool	makedirectory();
 	bool	makefile();
@@ -89,8 +90,10 @@ private:
 	*
 	*returns true when the file exists after the method returns
 	*/
-	bool	checkFileExists(string name);
+	bool	checkFileExists(string name, bool question);
 	void	list_files(vector<string>* files, const char* dirname);
+
+	void	OutErrror(string err);
 };
 
 #endif /* COMMAND_H */
