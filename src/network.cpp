@@ -1,5 +1,11 @@
 #include "network.h"
 
+#ifdef _WIN32
+#define SLEEP(x) Sleep(x);
+#else
+#define SLEEP(x) sleep(x);
+#endif
+
 Network::Network() {
 	serial = new Serial();
 	threadRunning = true;
@@ -77,10 +83,10 @@ bool Network::recv() {
 		COUT("Waiting..." << endl);
 		bool received = false;
 		while (!received) {
-			_sleep(10);
+			SLEEP(10);
 			{
 				lock_guard<mutex> lock(sec);
-				received = serial->available();
+				received = serial->available() > 0;
 			}
 		}
 		readBytes(buffer, 1);
@@ -173,22 +179,14 @@ bool Network::sendpkt(REQ_PACKET &pkt) {
 }
 
 REQ_PACKET Network::getrequestpacket() {
-#ifdef _WIN32
-	while (!getrequestPacketAvailable()) { _sleep(10); }
-#else
-	while (!getrequestPacketAvailable()) { sleep(10); }
-#endif
+	while (!getrequestPacketAvailable()) { SLEEP(10); }
 	lock_guard<mutex> lock(sec);
 	requestPacketAvailable = false;
 	return requestPacket;
 }
 
 INFO_PACKET Network::getinfopacket() {
-#ifdef _WIN32
-	while (!getinfoPacketAvailable()) { _sleep(10); }
-#else
-	while (!getinfoPacketAvailable()) { sleep(10); }
-#endif
+	while (!getinfoPacketAvailable()) { SLEEP(10); }
 	lock_guard<mutex> lock(sec);
 	infoPacketAvailable = false;
 	return infoPacket;
@@ -196,33 +194,21 @@ INFO_PACKET Network::getinfopacket() {
 
 MSG_PACKET Network::getmsgpacket()
 {
-#ifdef _WIN32
-	while (!getmsgPacketAvailable()) { _sleep(10); }
-#else
-	while (!getmsgPacketAvailable()) { sleep(10); }
-#endif
+	while (!getmsgPacketAvailable()) { SLEEP(10); }
 	lock_guard<mutex> lock(sec);
 	msgPacketAvailable = false;
 	return msgPacket;
 }
 
 CONF_PACKET Network::getconfpacket() {
-#ifdef _WIN32
-	while (!getconfPacketAvailable()) { _sleep(10); }
-#else
-	while (!getconfPacketAvailable()) { sleep(10); }
-#endif
+	while (!getconfPacketAvailable()) { SLEEP(10); }
 	lock_guard<mutex> lock(sec);
 	confPacketAvailable = false;
 	return confPacket;
 }
 
 DATA_PACKET Network::getdatapacket() {
-#ifdef _WIN32
-	while (!getdataPacketAvailable()) { _sleep(10); }
-#else
-	while (!getdataPacketAvailable()) { sleep(10); }
-#endif
+	while (!getdataPacketAvailable()) { SLEEP(10); }
 	lock_guard<mutex> lock(sec);
 	dataPacketAvailable = false;
 	return dataPacket;

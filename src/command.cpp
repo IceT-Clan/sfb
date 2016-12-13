@@ -51,8 +51,6 @@ bool Command::read() {
 }
 
 bool Command::exec() {
-	struct dirent *entry;
-
 	// Decide which command should be executed
 	switch (cmd) {
 		case CMD_NONE:
@@ -478,11 +476,11 @@ bool Command::move() {
 	//Open files
 	source.open(argv[2], ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		CERR( "Error opening source: " << strerror(errno) << endl);
+		OutErrror("Error opening source");
 	}
 	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		CERR( "Error opening target: " << strerror(errno) << endl);
+		OutErrror("Error opening target");
 	}
 	return true;
 }
@@ -620,7 +618,7 @@ bool Command::listall() {
 bool Command::changedirectory() {
 	if (argv[2][0] == ':') {
 		//Change local directory
-		chdir(argv[2] + 1);
+		_chdir(argv[2] + 1);
 	}
 
 	REQ_PACKET changedirectory;
@@ -723,7 +721,9 @@ bool Command::checkFileExists(string name, bool question) {
 	ifstream target;
 	target.open(name, ios_base::in | ios_base::binary);
 	if (!target.is_open()) {
-		string error = strerror(errno);
+		char errorMsg[64];
+		strerror_s(errorMsg, 64, errno);
+		string error(errorMsg);
 		if (error.compare("No such file or directory") == 0) {
 			return false;
 		}
@@ -749,7 +749,7 @@ bool Command::checkFileExists(string name, bool question) {
 
 #ifdef _WIN32
 bool Command::startInBackground(string port, bool hideConsole) {
-	LPTSTR lpCommandLine = strdup(("sfb.exe start " + port + (hideConsole ? " -h" : "")).c_str());
+	LPTSTR lpCommandLine = _strdup(("sfb.exe start " + port + (hideConsole ? " -h" : "")).c_str());
 
 	STARTUPINFO lpStartupInfo;
 	PROCESS_INFORMATION lpProcessInfo;
@@ -826,6 +826,16 @@ void Command::list_files(vector<string>* files, const char* dirname) {
 	return;
 }
 
+void Command::OutErrror(string err) {
+	char errMsg[64];
+	if (strerror_s(errMsg, 64, errno) != 0) {
+		CERR("[Command-Error]" << err << ": " << "unknown error" << endl)
+	}
+	else {
+		CERR("[Command-Error]" << err << ": " << errMsg << endl);
+	}
+}
+
 bool Command::moveOrCopy(bool move) {
 	//Paths
 	string sourcePath(argv[2]);
@@ -899,7 +909,7 @@ bool Command::sendFile(string path, bool move) {
 	//Open file
 	source.open(path, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		CERR( "Error opening source: " << strerror(errno) << endl);
+		OutErrror("Error opening source");
 		return false;
 	}
 
@@ -929,7 +939,7 @@ bool Command::sendFile(string path, bool move) {
 			}
 
 		}
-		if (cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE != 0) {
+		if ((cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE) != 0) {
 			CERR("Connected computer denied moving the file: Not enough space ;)" << endl);
 			return false;
 		}
@@ -941,7 +951,7 @@ bool Command::sendFile(string path, bool move) {
 		if (!source) break;
 		net->sendpkt(dPkt);
 	}
-	for (size_t i = source.gcount(); i < 252; i++)
+	for (size_t i = static_cast<size_t>(source.gcount()); i < 252; i++)
 		dPkt.bytes[i] = '\0';
 	net->sendpkt(dPkt);
 
@@ -950,10 +960,12 @@ bool Command::sendFile(string path, bool move) {
 	// Remove source
 	if (move) {
 		if (remove(path.c_str()) != 0) {
-			CERR( "Could not delete source file: " << strerror(errno) << endl);
+			OutErrror("Could not delete source file");
 			return true;
 		}
 	}
+
+	return true;
 }
 
 bool Command::recvFile(string path, bool move) {
@@ -971,7 +983,7 @@ bool Command::recvFile(string path, bool move) {
 	//Open file
 	target.open(path, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		CERR( "Error opening target: " << strerror(errno) << endl);
+		OutErrror("Error opening target");
 		return false;
 	}
 
@@ -1005,12 +1017,12 @@ bool Command::recvFile(string path, bool move) {
 			if (cPkt.confirmation == CONFIRMATION::DELETE_FILE) {
 				target.close();
 				if (remove(path.c_str()) != 0) {
-					CERR("Could not delete file: " << strerror(errno) << endl);
+					OutErrror("Could not delete file");
 					return false;
 				}
 				target.open(path, ios_base::out | ios_base::binary);
 				if (!target.is_open()) {
-					CERR("Error opening target: " << strerror(errno) << endl);
+					OutErrror("Error opening target");
 					return false;
 				}
 			}
@@ -1041,6 +1053,8 @@ bool Command::recvFile(string path, bool move) {
 		neededBytes -= 252;
 		packet++;
 	}
+
+	return true;
 }
 
 bool Command::handleFile(string sourceP, string targetP, bool move) {
@@ -1051,7 +1065,7 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	//Open files
 	source.open(sourceP, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		CERR( "Error opening source: " << strerror(errno) << endl);
+		OutErrror("Error opening source");
 		return false;
 	}
 	// Test target file
@@ -1061,7 +1075,7 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	}
 	target.open(targetP, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		CERR( "Error opening target: " << strerror(errno) << endl);
+		OutErrror("Error opening target");
 		return false;
 	}
 

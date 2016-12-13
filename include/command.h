@@ -9,7 +9,6 @@
 #include "serial/serial.h"
 #include "network.h"
 #ifdef _WIN32
-	#include <Windows.h>
 	#include "dirent.h"
 	#include "direct.h"
 #else
@@ -96,6 +95,8 @@ private:
 	*/
 	bool	checkFileExists(string name, bool question);
 	void	list_files(vector<string>* files, const char* dirname);
+
+	void	OutErrror(string err);
 };
 
 #endif /* COMMAND_H */
