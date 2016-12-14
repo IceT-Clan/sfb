@@ -46,6 +46,7 @@ class Network
 		mutex			sec;
 
 		bool			threadRunning;
+		bool			outputReseiveMessage = false;
 	public:
 		Network();
 		~Network();
@@ -77,6 +78,8 @@ class Network
 		bool			sendpkt(MSG_PACKET &pkt);
 		void			readBytes(vector<uint8_t>& buffer, size_t count);
 		void			writeBytes(uint8_t* buffer, size_t count);
+
+		void			setDebug(bool debug);
 
 		static void		createCheckSum(DATA_PACKET& pkt);
 };

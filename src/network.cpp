@@ -75,12 +75,12 @@ bool Network::init(string port /*= ""*/) {
 }
 
 bool Network::recv() {
-	COUT("Background process started..." << endl);
+	COUT("Background thread started..." << endl);
 	while (true) {
 		vector<uint8_t> buffer;
 
 		// Wait until we received something
-		COUT("Waiting..." << endl);
+		if(outputReseiveMessage) COUT("Waiting..." << endl);
 		bool received = false;
 		while (!received) {
 			SLEEP(10);
@@ -91,48 +91,48 @@ bool Network::recv() {
 		}
 		readBytes(buffer, 1);
 
-		COUT("Received something" << endl);
+		if(outputReseiveMessage) COUT("Received something" << endl);
 		switch (buffer[0]) {
 		case REQUEST: {
-			COUT("REQ received" << endl);
+			if(outputReseiveMessage) COUT("REQ received" << endl);
 			buffer.clear();
 			readBytes(buffer, sizeof(COMMANDS));
 			REQ_PACKET packet;
 			packet.cmd = *reinterpret_cast <COMMANDS*> (&buffer[0]);
-			COUT("  Cmd: " << packet.cmd << endl);
+			if(outputReseiveMessage) COUT("  Cmd: " << packet.cmd << endl);
 			lock_guard<mutex> lock(sec);
 			packet.path0 = serial->readline();
 			packet.path1 = serial->readline();
 			packet.path0 = packet.path0.erase(packet.path0.length() - 1);
 			packet.path1 = packet.path1.erase(packet.path1.length() - 1);
 			requestPacket = packet;
-			 COUT("  Path0: " << packet.path0 << endl << "  Path1: " << packet.path1 << endl);
+			if(outputReseiveMessage) COUT("  Path0: " << packet.path0 << endl << "  Path1: " << packet.path1 << endl);
 			requestPacketAvailable = true;
 		} break;
 		case INFO: {
-			COUT("INFO received" << endl);
+			if(outputReseiveMessage) COUT("INFO received" << endl);
 			buffer.clear();
 			readBytes(buffer, sizeof(INFO_PACKET::bytesnr));
 			INFO_PACKET packet;
 			packet.bytesnr = *reinterpret_cast <size_t*> (&buffer[0]);
 			lock_guard<mutex> lock(sec);
 			infoPacket = packet;
-			COUT("  Bytesnr: " << packet.bytesnr << endl);
+			if(outputReseiveMessage) COUT("  Bytesnr: " << packet.bytesnr << endl);
 			infoPacketAvailable = true;
 		} break;
 		case CONF: {
-			COUT("CONF received" << endl);
+			if(outputReseiveMessage) COUT("CONF received" << endl);
 			buffer.clear();
 			readBytes(buffer, sizeof(CONFIRMATION));
 			CONF_PACKET packet;
 			packet.confirmation = *reinterpret_cast <CONFIRMATION*> (&buffer[0]);
 			lock_guard<mutex> lock(sec);
 			confPacket = packet;
-			COUT("  Confirmation: " << packet.confirmation << endl);
+			if(outputReseiveMessage) COUT("  Confirmation: " << packet.confirmation << endl);
 			confPacketAvailable = true;
 		} break;
 		case DATA: {
-			COUT("DATA received" << endl);
+			if(outputReseiveMessage) COUT("DATA received" << endl);
 			buffer.clear();
 			readBytes(buffer, 252);
 			DATA_PACKET packet;
@@ -142,11 +142,11 @@ bool Network::recv() {
 			packet.checksum = *reinterpret_cast <uint32_t*> (&buffer[0]);
 			lock_guard<mutex> lock(sec);
 			dataPacket = packet;
-			COUT("  Checksum: " << packet.checksum << endl);
+			if(outputReseiveMessage) COUT("  Checksum: " << packet.checksum << endl);
 			dataPacketAvailable = true;
 		} break;
 		case MESSAGE: {
-			COUT("MSG received" << endl);
+			if(outputReseiveMessage) COUT("MSG received" << endl);
 			buffer.clear();
 			readBytes(buffer, sizeof(uint32_t));
 			MSG_PACKET packet;
@@ -157,7 +157,7 @@ bool Network::recv() {
 			msgPacketAvailable = true;
 		} break;
 		default:
-			CERR( "An error occured!" << endl);
+			CERR( "An error occured: Unknown Package received!" << endl);
 			break;
 		}
 	}
@@ -174,7 +174,7 @@ bool Network::sendpkt(REQ_PACKET &pkt) {
 	sendraw(pkt.cmd);
 	serial->write(pkt.path0);
 	serial->write(pkt.path1);
-	COUT("SENT" << endl);
+	if (outputReseiveMessage) COUT("SENT REQ_PACKET" << endl);
 	return true;
 }
 
@@ -243,7 +243,7 @@ bool Network::getmsgPacketAvailable() {
 bool Network::sendpkt(INFO_PACKET &pkt) {
 	sendraw(PACKETS::INFO);
 	sendraw(pkt);
-	COUT("SENT INFO_PACKET" << endl);
+	if (outputReseiveMessage) COUT("SENT INFO_PACKET" << endl);
 	return true;
 }
 
@@ -251,7 +251,7 @@ bool Network::sendpkt(INFO_PACKET &pkt) {
 bool Network::sendpkt(CONF_PACKET &pkt) {
 	sendraw(PACKETS::CONF);
 	sendraw(pkt);
-	COUT("SENT CONF_PACKET" << endl);
+	if (outputReseiveMessage) COUT("SENT CONF_PACKET" << endl);
 	return true;
 }
 
@@ -264,7 +264,7 @@ bool Network::sendpkt(DATA_PACKET &pkt) {
 
 	writeBytes(pkt.bytes, 252);
 	sendraw(pkt.checksum);
-	COUT("SENT DATA_PACKET" <<endl);
+	if (outputReseiveMessage) COUT("SENT DATA_PACKET" <<endl);
 	return true;
 }
 
@@ -274,7 +274,7 @@ bool Network::sendpkt(MSG_PACKET & pkt) {
 	sendraw(pkt.size);
 	lock_guard<mutex> lock(sec);
 	serial->write(pkt.msg);
-	COUT("SENT MSG_PACKET" << endl);
+	if (outputReseiveMessage) COUT("SENT MSG_PACKET" << endl);
 	return true;
 }
 
@@ -298,6 +298,10 @@ void Network::writeBytes(uint8_t* buffer, size_t count) {
 	while (bytesWritten < count) {
 		bytesWritten += serial->write(buffer + bytesWritten, count - bytesWritten);
 	}
+}
+
+void Network::setDebug(bool debug) {
+	this->outputReseiveMessage = debug;
 }
 
 template <class temp>

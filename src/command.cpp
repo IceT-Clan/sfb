@@ -51,6 +51,15 @@ bool Command::read() {
 }
 
 bool Command::exec() {
+
+	string arg;
+	bool debug = false;
+	if (string(argv[argc - 1]).compare("-d") == 0) {
+		debug = true;
+		argc--;
+	}
+	net->setDebug(debug);
+
 	// Decide which command should be executed
 	switch (cmd) {
 		case CMD_NONE:
@@ -214,27 +223,35 @@ bool Command::start() {
 		REQ_PACKET pkt =  net->getrequestpacket();
 		switch (pkt.cmd) {
 		case CMD_MOVE:
+			COUT("MOVE command started" << endl);
 			result = moveOrCopy_b(pkt, true);
 			break;
 		case CMD_COPY:
+			COUT("COPY command started" << endl);
 			result = moveOrCopy_b(pkt, false);
 			break;
 		case CMD_LS:
+			COUT("LS command started" << endl);
 			result = ls_b(pkt);
 			break;
 		case CMD_LA:
+			COUT("LA command started" << endl);
 			result = la_b(pkt);
 			break;
 		case CMD_PWD:
+			COUT("PWD command started" << endl);
 			result = pwd_b(pkt);
 			break;
 		case CMD_MKDIR:
+			COUT("MKDIR command started" << endl);
 			result = mkdir_b(pkt);
 			break;
 		case CMD_RM:
+			COUT("Remove command started" << endl);
 			result = rm_b(pkt);
 			break;
 		case CMD_TOUCH:
+			COUT("Touch command started" << endl);
 			result = makefile_b(pkt);
 			break;
 		default:
