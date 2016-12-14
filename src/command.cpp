@@ -849,14 +849,14 @@ bool Command::moveOrCopy(bool move) {
 		else {				// Send source file
 			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, "", targetPath };
 			net->sendpkt(pkt);
-			return sendFile(sourcePath, move);
+			return sendFile(sourcePath, move, true);
 		}
 	}
 	else {
 		if (isTargetHere) {	// Recieve file
 			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, "" };
 			net->sendpkt(pkt);
-			return recvFile(targetPath, move);
+			return recvFile(targetPath, move, true);
 		}
 		else {				// All files on other pc
 			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, sourcePath, targetPath };
@@ -876,12 +876,12 @@ bool Command::moveOrCopy_b(REQ_PACKET& pkt, bool move) {
 			return handleFile(pkt.path0, pkt.path1, move);
 		}
 		else {				// Send source file
-			return sendFile(pkt.path0, move);
+			return sendFile(pkt.path0, move, false);
 		}
 	}
 	else {
 		if (isTargetHere) {	// Recieve file
-			return recvFile(pkt.path1, move);
+			return recvFile(pkt.path1, move, false);
 		}
 		else {				// All files on other pc
 			REQ_PACKET pkt{ move ? CMD_MOVE : CMD_COPY, pkt.path0, pkt.path1 };
@@ -890,7 +890,7 @@ bool Command::moveOrCopy_b(REQ_PACKET& pkt, bool move) {
 	}
 }
 
-bool Command::sendFile(string path, bool move) {
+bool Command::sendFile(string path, bool move, bool isUser) {
 	//file
 	ifstream source;
 
@@ -912,25 +912,29 @@ bool Command::sendFile(string path, bool move) {
 	CONF_PACKET cPkt = net->getconfpacket();
 	if (cPkt.confirmation != CONFIRMATION::OK) {
 		if ((cPkt.confirmation & CONFIRMATION::FILE_EXISTS) != 0) {
-			COUT("File with the same name already exists! do you want to override it? [y/N]" << endl);
-			string input;
-			cin >> input;
-			CONF_PACKET cPkt;
-			if (input == "y" | input == "Y") {
-				cPkt.confirmation = CONFIRMATION::DELETE_FILE;
-				net->sendpkt(cPkt);
-			}
-			else {
-				cPkt.confirmation = CONFIRMATION::NOT_DELETE_FILE;
-				net->sendpkt(cPkt);
-				return true;
+			if (isUser) {
+				COUT("File with the same name already exists! do you want to override it? [y/N]" << endl);
+				string input;
+				cin >> input;
+				CONF_PACKET cPkt;
+				if (input == "y" | input == "Y") {
+					cPkt.confirmation = CONFIRMATION::DELETE_FILE;
+					net->sendpkt(cPkt);
+				} else {
+					cPkt.confirmation = CONFIRMATION::NOT_DELETE_FILE;
+					net->sendpkt(cPkt);
+					return true;
+				}
+			} else {
+				CERR("Connected computer denied the command: File already exists" << endl);
+				return false;
 			}
 
-		}
-		if ((cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE) != 0) {
-			CERR("Connected computer denied moving the file: Not enough space ;)" << endl);
-			return false;
-		}
+		} else
+			if ((cPkt.confirmation & CONFIRMATION::NOT_ENOUGH_SPACE) != 0) {
+				CERR("Connected computer denied the command: Not enough space" << endl);
+				return false;
+			}
 	}
 	
 	DATA_PACKET dPkt;
@@ -956,7 +960,7 @@ bool Command::sendFile(string path, bool move) {
 	return true;
 }
 
-bool Command::recvFile(string path, bool move) {
+bool Command::recvFile(string path, bool move, bool isUser) {
 	//file
 	ofstream target;
 
@@ -964,7 +968,7 @@ bool Command::recvFile(string path, bool move) {
 
 	// Test target file
 	bool isFileExisting = false;
-	if (checkFileExists(path, false)) {
+	if (checkFileExists(path, isUser)) {
 		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::FILE_EXISTS);
 		isFileExisting = true;
 	}
