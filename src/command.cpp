@@ -972,12 +972,7 @@ bool Command::recvFile(string path, bool move, bool isUser) {
 		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::FILE_EXISTS);
 		isFileExisting = true;
 	}
-	//Open file
-	target.open(path, ios_base::out | ios_base::binary);
-	if (!target.is_open()) {
-		OutErrror("Error opening target");
-		return false;
-	}
+
 
 	INFO_PACKET iPkt = net->getinfopacket();
 	unsigned long long freeSpace;
@@ -1004,14 +999,10 @@ bool Command::recvFile(string path, bool move, bool isUser) {
 		cPkt.confirmation = static_cast<CONFIRMATION>(cPkt.confirmation | CONFIRMATION::NOT_ENOUGH_SPACE);
 	net->sendpkt(cPkt);
 	if (cPkt.confirmation != CONFIRMATION::OK) {
-		if (isFileExisting) {
+		if (isFileExisting && !isUser) {
 			cPkt = net->getconfpacket();
 			if (cPkt.confirmation == CONFIRMATION::DELETE_FILE) {
-				target.close();
-				if (remove(path.c_str()) != 0) {
-					OutErrror("Could not delete file");
-					return false;
-				}
+				//Open file
 				target.open(path, ios_base::out | ios_base::binary);
 				if (!target.is_open()) {
 					OutErrror("Error opening target");
@@ -1019,12 +1010,17 @@ bool Command::recvFile(string path, bool move, bool isUser) {
 				}
 			}
 			else {
-				target.close();
 				return true;
 			}
 		}
 		else {
-			target.close();
+			return false;
+		}
+	} else {
+		//Open file
+		target.open(path, ios_base::out | ios_base::binary);
+		if (!target.is_open()) {
+			OutErrror("Error opening target");
 			return false;
 		}
 	}
