@@ -10,7 +10,7 @@ Command::Command(int argc, char** argv) {
 	this->net = new Network();
 
 	// Check if default port is available
-	if (!net->init("COM2")) {
+	if (!net->init("COM1")) {
 		CERR( "Failed to init network" << endl);
 	}
 
@@ -1008,7 +1008,7 @@ bool Command::recvFile(string path, bool move) {
 		}
 	}
 	DATA_PACKET dPkt;
-	unsigned long long packetCount = iPkt.bytesnr / 252ULL + iPkt.bytesnr % 252ULL ? 1 : 0;
+	unsigned long long packetCount = (iPkt.bytesnr / 252ULL) + (iPkt.bytesnr % 252ULL ? 1 : 0);
 	unsigned long long neededBytes = iPkt.bytesnr;
 	unsigned long long packet = 0ULL;
 	while (packet < packetCount) {
