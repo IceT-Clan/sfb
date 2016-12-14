@@ -46,7 +46,7 @@ class Network
 		mutex			sec;
 
 		bool			threadRunning;
-		bool			outputReseiveMessage = false;
+		bool			outputReceiveMessage = false;
 	public:
 		Network();
 		~Network();

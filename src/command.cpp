@@ -482,11 +482,11 @@ bool Command::move() {
 	//Open files
 	source.open(argv[2], ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		OutErrror("Error opening source");
+		OutError("Error opening source");
 	}
 	target.open(argv[3], ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		OutErrror("Error opening target");
+		OutError("Error opening target");
 	}
 	return true;
 }
@@ -814,7 +814,7 @@ void Command::list_files(vector<string>* files, const char* dirname) {
 	return;
 }
 
-void Command::OutErrror(string err) {
+void Command::OutError(string err) {
 	char errMsg[64];
 	if (strerror_s(errMsg, 64, errno) != 0) {
 		CERR("[Command-Error]" << err << ": " << "unknown error" << endl)
@@ -897,7 +897,7 @@ bool Command::sendFile(string path, bool move) {
 	//Open file
 	source.open(path, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		OutErrror("Error opening source");
+		OutError("Error opening source");
 		return false;
 	}
 
@@ -948,7 +948,7 @@ bool Command::sendFile(string path, bool move) {
 	// Remove source
 	if (move) {
 		if (remove(path.c_str()) != 0) {
-			OutErrror("Could not delete source file");
+			OutError("Could not delete source file");
 			return true;
 		}
 	}
@@ -971,7 +971,7 @@ bool Command::recvFile(string path, bool move) {
 	//Open file
 	target.open(path, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		OutErrror("Error opening target");
+		OutError("Error opening target");
 		return false;
 	}
 
@@ -1005,12 +1005,12 @@ bool Command::recvFile(string path, bool move) {
 			if (cPkt.confirmation == CONFIRMATION::DELETE_FILE) {
 				target.close();
 				if (remove(path.c_str()) != 0) {
-					OutErrror("Could not delete file");
+					OutError("Could not delete file");
 					return false;
 				}
 				target.open(path, ios_base::out | ios_base::binary);
 				if (!target.is_open()) {
-					OutErrror("Error opening target");
+					OutError("Error opening target");
 					return false;
 				}
 			}
@@ -1053,7 +1053,7 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	//Open files
 	source.open(sourceP, ios_base::in | ios_base::binary);
 	if (!source.is_open()) {
-		OutErrror("Error opening source");
+		OutError("Error opening source");
 		return false;
 	}
 	// Test target file
@@ -1063,7 +1063,7 @@ bool Command::handleFile(string sourceP, string targetP, bool move) {
 	}
 	target.open(targetP, ios_base::out | ios_base::binary);
 	if (!target.is_open()) {
-		OutErrror("Error opening target");
+		OutError("Error opening target");
 		return false;
 	}
 

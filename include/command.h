@@ -93,7 +93,7 @@ private:
 	bool	checkFileExists(string name, bool question);
 	void	list_files(vector<string>* files, const char* dirname);
 
-	void	OutErrror(string err);
+	void	OutError(string err);
 };
 
 #endif /* COMMAND_H */
