@@ -369,15 +369,23 @@ bool Command::la_b(REQ_PACKET& pkt) {
 bool Command::mkdir_b(REQ_PACKET& pkt) {
 	string command, option;
 
-	option = (pkt.path0).c_str(); 
+	/*option = (pkt.path0).c_str(); 
 	command = "mkdir " + option;
-	system((const char*)command.c_str());
-
-	CONF_PACKET conf;
-	conf.confirmation = CONFIRMATION::OK;
-	net->sendpkt(conf);
-
-	return true;
+	system((const char*)command.c_str());*/
+	if (_mkdir(pkt.path0.c_str())) {
+		cout << "Directory " << pkt.path0 << " successfully created!" << endl;
+		CONF_PACKET conf;
+		conf.confirmation = CONFIRMATION::OK;
+		net->sendpkt(conf);
+		return true;
+	}
+	else {
+		CONF_PACKET conf;
+		conf.confirmation = CONFIRMATION::ERROR_CREATING;
+		net->sendpkt(conf);
+		cout << "Cant create Directory " << pkt.path0 << " !" << endl;
+		return false;
+	}	
 }
 
 bool Command::pwd_b(REQ_PACKET& pkt) {
@@ -402,11 +410,14 @@ bool Command::rm_b(REQ_PACKET& pkt) {
 	string command;
 
 #ifdef _WIN32
-	command = "del " + pkt.path0;
+	/*command = "del " + pkt.path0;
+	system((const char*)command.c_str());*/
+	std::remove(pkt.path0.c_str());
+	_rmdir(pkt.path0.c_str());
 #else
 	command = "rm -rf" + pkt.path0;
-#endif
 	system((const char*)command.c_str());
+#endif	
 
 	CONF_PACKET conf;
 	conf.confirmation = CONFIRMATION::OK;

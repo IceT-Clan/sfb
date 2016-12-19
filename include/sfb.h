@@ -37,7 +37,8 @@ enum CONFIRMATION : uint8_t {
 	NOT_ENOUGH_SPACE = 1,
 	FILE_EXISTS = 2,
 	DELETE_FILE,
-	NOT_DELETE_FILE
+	NOT_DELETE_FILE,
+	ERROR_CREATING
 };
 
 // Request packet structure
