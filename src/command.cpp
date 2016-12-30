@@ -517,9 +517,6 @@ bool Command::list() {
 			//Print all files and directories within the directory
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
-				case DT_REG:
-					COUT(ent->d_name << " ");
-					break;
 
 				case DT_DIR:
 					//Set font color blue
@@ -528,11 +525,7 @@ bool Command::list() {
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
 					break;
-
-				case DT_LNK:
-					COUT(ent->d_name << " ");
-					break;
-
+						
 				default:
 					COUT(ent->d_name << " ");
 				}
@@ -580,9 +573,6 @@ bool Command::listall() {
 			//Print all files and directories within the directory
 			while ((ent = readdir(dir)) != NULL) {
 				switch (ent->d_type) {
-				case DT_REG:
-					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
-					break;
 
 				case DT_DIR:
 					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t");
@@ -591,10 +581,6 @@ bool Command::listall() {
 					COUT(ent->d_name << "/" << endl);
 					//Reset font color
 					SetConsoleTextAttribute(hConsole, 15);
-					break;
-
-				case DT_LNK:
-					COUT(ent->d_reclen << " " << ent->d_type << " " << ent->d_namlen << "\t" << ent->d_name << endl);
 					break;
 
 				default:
