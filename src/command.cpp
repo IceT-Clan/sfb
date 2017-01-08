@@ -682,8 +682,8 @@ bool Command::removefile() {
 	if (argv[2][0] == ':') {
 #ifdef _WIN32
 	//command = "del " + option;
-	std::remove(pkt.path0.c_str());
-	_rmdir(pkt.path0.c_str());
+	std::remove(argv[2] + 1);
+	_rmdir(argv[2] + 1);
 #else
 		 command = "rm -rf" + option;
 #endif
